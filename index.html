@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Averitt Express Map Suite</title>
+		<meta charset="utf8">
+		<!-- JS Files -->
+		<!-- Libraries -->
+		<script src="js/lib/jquery-3.6.0.min.js"></script>
+
+		<!-- Scripts -->
+		<!-- Initialization -->
+		<script src="js/structs.js"></script>
+		<!-- Actions -->
+		<script src="js/landing.js"></script>
+
+		<!-- CSS Files -->
+		<link rel="stylesheet" href="css/index.css" />
+	</head>
+	<body>
+		<div id="header"></div>
+		<div id="sidebar"></div>
+		<div id="mapWrapper"></div>
+		<div id="cover"></div>
+		<div id="landing">
+
+			<div id="landingHeader">
+				<div id="landingBackButtonWrapper">
+					<button id="landingBackButton" onclick="landingGoBack()">Go Back</button>
+				</div>
+				<h1>OPTIONS</h1>
+			</div>
+
+			<div id="landingError"><p></p></div>
+			<br />
+
+			<div id="landingCentersOptions" class="landingCenters">
+				<label for="landingCentersFileInput">Service Centers File: </label>
+				<input id="landingCentersFileInput" name="landingCentersFileInput" type="file" accept="csv" />
+				<br />
+				<br />
+				<button onclick="loadCenters()">Go!</button>
+			</div>
+
+			<div id="landingMapSelect" class="landingType">
+				<label for="landingMapSelectDropdown">Select a Map Type: </label>
+				<select id="landingMapSelectDropdown" name="landingMapSelectDropdown" type="select">
+					<option value="empty">Empty</option>
+					<option value="ideal">Ideal</option>
+					<option value="actual">Actual</option>
+				</select>
+				<button onclick="mapSelect()">Next</button>
+			</div>
+
+			<div id="landingEmptyOptions" class="landingOptions">
+				<label for="landingEmptyFileInput">Empty Paths File: </label>
+				<input id="landingEmptyFileInput" name="landingEmptyFileInput" type="file" accept="csv" />
+				<br />
+				<br />
+				<button onclick="loadOptions()">Go!</button>
+			</div>
+
+			<div id="landingIdealOptions" class="landingOptions">
+				<label for="landingIdealFileInput">Ideal Paths File: </label>
+				<input id="landingIdealFileInput" name="landingIdealFileInput" type="file" accept="csv" />
+				<br />
+				<br />
+				<button onclick="loadOptions()">Go!</button>
+			</div>
+
+			<div id="landingActualOptions" class="landingOptions">
+				<label for="landingActualFileInput">Actual Paths File: </label>
+				<input id="landingActualFileInput" name="landingActualFileInput" type="file" accept="csv" />
+				<br />
+				<br />
+				<button onclick="loadOptions()">Go!</button>
+			</div>
+
+		</div>
+	</body>
+</html>
