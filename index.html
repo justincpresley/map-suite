@@ -6,20 +6,32 @@
 		<!-- JS Files -->
 		<!-- Libraries -->
 		<script src="js/lib/jquery-3.6.0.min.js"></script>
+        <script src="js/lib/jcanvas.min.js"></script>
 
 		<!-- Scripts -->
 		<!-- Initialization -->
 		<script src="js/structs.js"></script>
 		<!-- Actions -->
 		<script src="js/landing.js"></script>
+		<script src="js/USMap.js"></script>
+        <script src="js/renderer.js"></script>
 
 		<!-- CSS Files -->
 		<link rel="stylesheet" href="css/index.css" />
 	</head>
 	<body>
-		<div id="header"></div>
-		<div id="sidebar"></div>
-		<div id="mapWrapper"></div>
+		<div id="header">
+			
+		</div>
+		<div id="sidebar">
+
+		</div>
+		<div id="mapWrapper">
+			<canvas id="mapCanvas">
+				<!-- Error for unsupported browsers -->
+				<p>This browser is not supported for this application!</p>
+			</canvas>
+		</div>
 		<div id="cover"></div>
 		<div id="landing">
 
