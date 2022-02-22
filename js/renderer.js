@@ -21,6 +21,10 @@ $(function()
 	// Initialize canvas
 	$mapCanvas = canvasSetup("mapCanvas", "mapWrapper");
 
+	// As an example, plot Nashville and Cookeville
+	plotPoint(-86.72, 36.11, {$label: "NAS"});
+	plotPoint(-85.49, 36.13, {$label: "CKV"});
+
 });
 
 
@@ -114,7 +118,7 @@ function canvasSetup(canvasID, wrapperID)
 	// 		 not the center of the map
 
 	// create the scroll event listener
-	createScrollEventListener(canvasID, false);
+	createScrollEventListener(canvasID);
 	
 	// Render map of US
 	drawUS($mapCanvas);
@@ -132,20 +136,15 @@ Parameters:
 	$animate: Boolean, whether or not to animate the scrolling
 Returns: None
 *****************************************************************/
-function createScrollEventListener(canvasID, $animate){
+function createScrollEventListener(canvasID){
 	var $mapCanvas = $("#" + canvasID);
+	var $width = $mapCanvas.prop('width');
+	var $height = $mapCanvas.prop('height');
 
 	// 3 primary parameters for "feel" of the zoom
 	$zoomDuration = 100;
 	$easing = 'linear';  // either 'linear' or 'swing'
 	$scalingFactor = 1.1;
-
-	// Animation can look cleaner, but I find that
-	// it gets laggy when we have so many vertices.
-	$animation = {
-		easing: $easing,
-		duration: $zoomDuration
-	}
 
 	// initialize scale
 	$mapCanvas.setLayerGroup('map', {
@@ -154,30 +153,45 @@ function createScrollEventListener(canvasID, $animate){
 
 	// scroll wheel event handler
 	function zoom(key){
-		$mapCanvas.stopLayerGroup('map');
+		$mapCanvas.stopLayerGroup('map'); // really for the animation option
 		$currentScale = $mapCanvas.getLayerGroup('map')[1].scale;
+
+		// zoom in on cursor instead of center of screen
+		$xOffset = (key.offsetX - $width/2)*($scalingFactor-1)
+		$yOffset = (key.offsetY - $height/2)*($scalingFactor-1)
+
 		if(key.deltaY < 0){
 			// zoom in
-			if($animate){
-				$mapCanvas.animateLayerGroup('map', {
-					scale: $currentScale * $scalingFactor
-				}, $animation).drawLayers();
-			} else {
-				$mapCanvas.setLayerGroup('map', {
-					scale: $currentScale * $scalingFactor
-				}).drawLayers();
-			}
+
+			// scale vertices (for correct translation)
+			$mapGroup = $mapCanvas.getLayerGroup('map');
+			for(var i = 0; i < $mapGroup.length; i++){
+				$mapGroup[i].x = $mapGroup[i].x * $scalingFactor - $xOffset;
+				$mapGroup[i].y = $mapGroup[i].y * $scalingFactor - $yOffset;
+			};
+			
+			// scale UI (for scalable visuals)
+			$mapCanvas.setLayerGroup('map', {
+				scale: $currentScale * $scalingFactor
+			});
+
+			$mapCanvas.drawLayers();
 		} else {
 			// zoom out
-			if($animate){
-				$mapCanvas.animateLayerGroup('map', {
-					scale: $currentScale / $scalingFactor
-				}, $animation).drawLayers();
-			} else {
-				$mapCanvas.setLayerGroup('map', {
-					scale: $currentScale / $scalingFactor
-				}).drawLayers();
-			}
+
+			// scale vertices (for correct translation)
+			$mapGroup = $mapCanvas.getLayerGroup('map');
+			for(var i = 0; i < $mapGroup.length; i++){
+				$mapGroup[i].x = $mapGroup[i].x / $scalingFactor + $xOffset;
+				$mapGroup[i].y = $mapGroup[i].y / $scalingFactor + $yOffset;
+			};
+			
+			// scale UI (for scalable visuals)
+			$mapCanvas.setLayerGroup('map', {
+				scale: $currentScale / $scalingFactor
+			});
+
+			$mapCanvas.drawLayers();
 		}
 		resetClickableBackground();
 	};
@@ -220,12 +234,11 @@ async function drawUS($canvas){
 			rounded: true,
 			closed: true,
 			layer: true,
-			groups: ['map'],
+			groups: ['map', 'states'],
 			draggable: true,
 			dragGroups: ['map'],  // this group enables global dragging
 			dragstop: resetClickableBackground, // reset position on mouse release
 			mouseout: resetClickableBackground,  // reset position when mouse leaves canvas
-			
 		};
 		
 		// For each point in the state, add it to the $countryShape line object
@@ -283,4 +296,68 @@ function longLatToCoords($long, $lat){
 	$xVal = -$vLat * 20;
 
 	return [$xVal, $yVal];
+}
+
+/*****************************************************************
+Name: Plot point
+Description: Plots a point with a label on the map based on latitude
+	and longitude
+Parameters: 
+	$long: the longitude to be converted
+	$lat: the latitude to be converted
+	an optional object containing optional parameters, including:
+		{
+			$label: The label to plot beside the point, defaults to
+				an empty string
+			$color: The color of the circle, defaults to red
+			$radius: The size of the circle, defaults to 1
+			$labelColor: The color of the label beside the point,
+				defaults to black
+			$labelSize: The font size of the label, defaults to 4
+			$labelOffset: The vertical position of the label relative
+				to the point. This defaults to -$labelSize*1.5
+		}
+Returns: None
+Examples:
+	Plot a simple point with default visuals:
+		plotPoint(-86.781408, 36.162628);
+	Plot a point that is green and has the label "NAS":
+		plotPoint(-86.781408, 36.162628, {$label: "NAS", $color: "#0F0"});
+*****************************************************************/
+function plotPoint($long, $lat, {$label="", $color="#F00", $radius=1, $labelColor="#000", $labelSize=4, $labelOffset=-$labelSize*1.5} = {}){
+
+	$coords = longLatToCoords($long, $lat);
+
+	$mapCanvas.drawArc({
+		fillStyle: $color,
+		x: $coords[0],
+		y: $coords[1],
+		radius: $radius,
+		start: 0,
+		end: 360,
+		scale: $mapCanvas.getLayerGroup('map')[1].scale,
+		inDegrees: true,
+
+		fromCenter: true,
+		layer: true,
+		groups: ['map', 'points'],
+		draggable: true,
+		dragGroups: ['map'],  // this group enables global dragging
+		dragstop: resetClickableBackground, // reset position on mouse release
+	});
+	
+	$mapCanvas.drawText({
+		fillStyle: $labelColor,
+		x: $coords[0],
+		y: $coords[1]+$labelOffset,
+		fontSize: $labelSize,
+		fontFamily: 'Verdana, sans-serif',
+		text: $label,
+		fromCenter: true,
+		layer: true,
+		groups: ['map', 'points'],
+		draggable: true,
+		dragGroups: ['map'],  // this group enables global dragging
+		dragstop: resetClickableBackground, // reset position on mouse release
+	});
 }
