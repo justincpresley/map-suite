@@ -50,7 +50,7 @@ $(() => {
 	// Initialize canvas
 	$mapCanvas = canvasSetup("mapCanvas", "mapWrapper");
 
-	//loadSampleData();
+	loadSampleData();
 
 	centerMap();
 
