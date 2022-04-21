@@ -29,17 +29,6 @@ function updateMapSettings() {
 	setMapPosition($mapPosition[0], $mapPosition[1], $mapPosition[2]);
 }
 
-/*****************************************************************
-Name: Update Map Settings
-Description: Updates map settings to filter lines and such.
-Parameters: None
-Returns: None
-*****************************************************************/
-function updateMapFilters() {
-
-}
-
-
 /**
  * jQuery Entry for the Canvas.
  * Begins when the document has finished loading.
@@ -50,7 +39,7 @@ $(() => {
 	// Initialize canvas
 	$mapCanvas = canvasSetup("mapCanvas", "mapWrapper");
 
-	loadSampleData();
+	//loadSampleData();
 
 	centerMap();
 
@@ -64,9 +53,11 @@ $(() => {
  */
 function loadSampleData(){
 	$exampleRoutes =
-	`ABL,DAL, 3 ,-99.81,32.44,-97.00,32.80, -
-	ATL,CHA, 6 ,-84.39,33.75,-85.19,35.06, -
+	`ATL,CHA, 6 ,-84.39,33.75,-85.19,35.06, -
+	ABL,DAL, 3 ,-99.81,32.44,-97.00,32.80, -
 	AUG,ATL, 4 ,-82.13,33.48,-84.39,33.75, -
+	DAL,ABL, 4 ,-99.81,32.44,-97.00,32.80, -
+	AUG,ATL, 5 ,-82.13,33.48,-84.39,33.75, -
 	AUS,WAC, 9 ,-97.63,30.29,-97.18,31.47, -
 	AVL,KNX, 3 ,-82.61,35.55,-84.13,35.91, -
 	BHM,ATL, 8 ,-86.76,33.56,-84.39,33.75, -
@@ -662,7 +653,7 @@ function removeRoute($centerA, $centerB, $label, $mapType) {
  * Iterates through each map type array and renders the routes.
  */
 function plotRoutes() {
-	if (mapDetails.render_ideal) {
+	if (mapDetails.render_scheduled) {
 		for (var i = 0; i < RendererBuffer.scheduled_paths.length; i++) {
 			plotRoute(RendererBuffer.scheduled_paths[i].$centerA, RendererBuffer.scheduled_paths[i].$centerB, RendererBuffer.scheduled_paths[i].$label, MapType.Scheduled);
 		}
@@ -695,11 +686,46 @@ function plotRoute($centerA, $centerB, $label, $mapType) {
 
 	if ($coordsA != null && $coordsB != null) {
 		if ($mapType == MapType.Scheduled) {
-			plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.scheduledColor });
+
+			// check to see if there is already an Actual path on this route. If so, make it scheduled color so that we can tell the difference.
+			$inActual = false;
+			for (var i = 0; i < RendererBuffer.actual_paths.length; i++) {
+				if((RendererBuffer.actual_paths[i].$centerA == $centerA && RendererBuffer.actual_paths[i].$centerB == $centerB) ||
+					(RendererBuffer.actual_paths[i].$centerA == $centerB && RendererBuffer.actual_paths[i].$centerB == $centerA)) {
+					$inActual = true;
+					break;
+				}
+			}
+			if($inActual && mapDetails.render_actual){
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.scheduledColor, $dotted: mapDetails.settings.scheduledDotted, $layer: 'scheduled', $labelColor: mapDetails.settings.scheduledColor });
+
+			// Otherwise, render it like normal, according to the user settings.
+			} else {
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.scheduledColor, $dotted: mapDetails.settings.scheduledDotted, $layer: 'scheduled' });
+			}
+
 		} else if ($mapType == MapType.Actual) {
-			plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.actualColor });
+
+			// check to see if there is already a Scheduled path on this route. If so, make the path dashed, make the label the actual path color, and swap it to the bottom.
+			$inScheduled = false;
+			for (var i = 0; i < RendererBuffer.scheduled_paths.length; i++) {
+				if((RendererBuffer.scheduled_paths[i].$centerA == $centerA && RendererBuffer.scheduled_paths[i].$centerB == $centerB) ||
+					(RendererBuffer.scheduled_paths[i].$centerA == $centerB && RendererBuffer.scheduled_paths[i].$centerB == $centerA)) {
+					$inScheduled = true;
+					break;
+				}
+			}
+			if($inScheduled && mapDetails.render_scheduled){
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.actualColor, $dotted: true, $labelSwap: true, $labelColor: mapDetails.settings.actualColor, $layer: 'actual' });
+
+			// otherwise, just keep it the default, according to the user settings.
+			} else {
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.actualColor, $dotted: mapDetails.settings.actualDotted, $layer: 'actual' });
+			}
+
 		} else if ($mapType == MapType.Empty) {
-			plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.emptyColor });
+			// Empty map stays entirely according to user settings.
+			plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.emptyColor, $dotted: mapDetails.settings.emptyDotted, $layer: 'empty' });
 		}
 	}
 
@@ -728,16 +754,22 @@ function plotRoute($centerA, $centerB, $label, $mapType) {
 			$labelOffset: The vertical position of the label relative
 				to the point. This defaults to -$labelSize*1.5.
  */
-function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", $arrow = mapDetails.settings.hasArrows, $arrowPadding = 5, $thickness = mapDetails.settings.pathSize, $labelColor = "#000", $labelSize = mapDetails.settings.pathLabelSize, $labelOffset = -$labelSize * 1.5 } = {}) {
+function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", $arrow = mapDetails.settings.hasArrows, $arrowPadding = 5, $thickness = mapDetails.settings.pathSize, $labelColor = "#000", $labelSize = mapDetails.settings.pathLabelSize, $labelOffset = -$labelSize, $dotted = false, $labelSwap = false, $layer = 'lines' } = {}) {
 
 	$coordsA = longLatToCoords($longA, $latA);
 	$coordsB = longLatToCoords($longB, $latB);
+
+	$strokeDash = [0];
+	if($dotted){
+		$strokeDash = mapDetails.settings.dashSize;
+	}
 
 	$mapCanvas.drawLine({
 		strokeStyle: $color,
 		strokeWidth: $thickness,
 		rounded: true,
 		arrowRadius: 3,
+		strokeDash: $strokeDash,
 		x1: $coordsA[0] * $mapCanvas.getLayerGroup('map')[1].scale,
 		y1: $coordsA[1] * $mapCanvas.getLayerGroup('map')[1].scale,
 		x2: $coordsB[0] * $mapCanvas.getLayerGroup('map')[1].scale,
@@ -746,11 +778,13 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 
 		fromCenter: true,
 		layer: true,
-		groups: ['map', 'lines'],
+		groups: ['map', $layer],
 		draggable: true,
 		dragGroups: ['map'],				// this group enables global dragging
 		dragstop: resetClickableBackground, // reset position on mouse release
 	});
+
+	// make an arrow
 	if ($arrow) {
 		$ratio = (Math.sqrt(($coordsA[0] - $coordsB[0]) * ($coordsA[0] - $coordsB[0]) + ($coordsA[1] - $coordsB[1]) * ($coordsA[1] - $coordsB[1])) - $arrowPadding)
 			/ Math.sqrt(($coordsA[0] - $coordsB[0]) * ($coordsA[0] - $coordsB[0]) + ($coordsA[1] - $coordsB[1]) * ($coordsA[1] - $coordsB[1]));
@@ -760,6 +794,7 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 			strokeWidth: $thickness,
 			rounded: true,
 			arrowRadius: 3,
+			strokeDash: $strokeDash,
 			endArrow: true,
 			x1: $coordsA[0] * $mapCanvas.getLayerGroup('map')[1].scale,
 			y1: $coordsA[1] * $mapCanvas.getLayerGroup('map')[1].scale,
@@ -769,7 +804,7 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 
 			fromCenter: true,
 			layer: true,
-			groups: ['map', 'lines'],
+			groups: ['map', $layer],
 			draggable: true,
 			dragGroups: ['map'],				// this group enables global dragging
 			dragstop: resetClickableBackground, // reset position on mouse release
@@ -787,6 +822,11 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 			$xRatio = -$xRatio;
 			$yRatio = -$yRatio;
 		}
+	}
+
+	if($labelSwap){
+		$yRatio = -$yRatio;
+		$xRatio = -$xRatio;
 	}
 
 	$mapCanvas.drawText({

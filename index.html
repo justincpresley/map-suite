@@ -20,6 +20,7 @@
 		<script src="js/popups.js"></script>
 		<script src="js/renderer.js"></script>
 		<script src="js/export.js"></script>
+		<script src="js/routing.js"></script>
 
 		<!-- CSS Files -->
 		<link rel="stylesheet" href="css/index.css" />
@@ -36,7 +37,7 @@
 				</br>
 				</br>
 				<label for="sidebarScheduledShow">Show Scheduled: </label>
-				<input type="checkbox" id="sidebarScheduledShow" name="sidebarScheduledShow" onclick="showScheduled(this)" checked />
+				<input type="checkbox" id="sidebarScheduledShow" name="sidebarScheduledShow" onclick="showScheduled(this)" />
 			</div>
 
 			<div id="sidebarMapActual" class="sidebarMapType">
@@ -45,7 +46,7 @@
 				</br>
 				</br>
 				<label for="sidebarActualShow">Show Actual: </label>
-				<input type="checkbox" id="sidebarActualShow" name="sidebarActualShow" onclick="showActual(this)" checked />
+				<input type="checkbox" id="sidebarActualShow" name="sidebarActualShow" onclick="showActual(this)" />
 			</div>
 
 			<div id="sidebarMapEmpty" class="sidebarMapType">
@@ -54,7 +55,7 @@
 				</br>
 				</br>
 				<label for="sidebarEmptyShow">Show Empty: </label>
-				<input type="checkbox" id="sidebarEmptyShow" name="sidebarEmptyShow" onclick="showEmpty(this)" checked />
+				<input type="checkbox" id="sidebarEmptyShow" name="sidebarEmptyShow" onclick="showEmpty(this)" />
 			</div>
 
 			<div id="sidebarExport">
@@ -71,13 +72,20 @@
 					<select id="topbarFiltersSrc">
 						<option value="NONE">None</option>
 					</select>
+
 					<label for="topbarFiltersDes">Destination:</label>
 					<select id="topbarFiltersDes">
 						<option value="NONE">None</option>
 					</select>
+
+					<label for="topbarFiltersDateFrom">Date From:</label>
+				  <input type="date" id="topbarFiltersDateFrom" name="topbarFiltersDateFrom">
+
+					<label for="topbarFiltersDateTo">Date To:</label>
+				  <input type="date" id="topbarFiltersDateTo" name="topbarFiltersDateTo">
 				</div>
 
-				<button onclick="updateMapFilters()">Apply</button>
+				<button onclick="routeProcessing()">Apply</button>
 			</div>
 
 			<button id="topbarSettingsButton" onclick="settingsMenu()">Settings</button>
@@ -106,63 +114,109 @@
 			<input id="popupCentersFileInput" name="popupCentersFileInput" type="file" accept="csv" />
 			<br />
 			<br />
-			<button onclick="loadCenters()">Go!</button>
+			<button onclick="loadCenters(true)">Go!</button>
 		</div>
 
 		<div id="popupSettings">
 			<div id="popupSettingsHeader">
 				<h2>Settings Menu</h2>
 			</div>
-			<label for="popupSettingsNodeLabelSize">Service Center Label Size: </label>
-			<input type="number" id="popupSettingsNodeLabelSize" name="popupSettingsNodeLabelSize" min="1" max="10" value="5"/>
-			<br />
-			<br />
-			<label for="popupSettingsPathLabelSize">Path Label Size: </label>
-			<input type="number" id="popupSettingsPathLabelSize" name="popupSettingsPathLabelSize" min="1" max="10" value="5"/>
-			</br>
-			</br>
-			<label for="popupSettingsNodeSize">Service Center Size: </label>
-			<input type="number" id="popupSettingsNodeSize" name="popupSettingsNodeSize" min="1" max="10" value="5"/>
-			<label for="popupSettingsPathSize">Path Size: </label>
-			<input type="number" id="popupSettingsPathSize" name="popupSettingsPathSize" min="1" max="10" value="5"/>
-			</br>
-			</br>
-			<label for="popupSettingsHasArrows">Has Arrows</label>
-			<input type="checkbox" id="popupSettingsHasArrows" name="popupSettingsHasArrows">
-			</br>
-			<label for="popupSettingsPlotAllNodes">Plot All Service Centers</label>
-			<input type="checkbox" id="popupSettingsPlotAllNodes" name="popupSettingsPlotAllNodes">
-			</br>
-			</br>
-			<label for="popupSettingsScheduledColor">Scheduled Path Color</label>
-			<select id="popupSettingsScheduledColor" name="popupSettingsScheduledColor">
-				<option value="#ff0000" selected>Red</option>
-				<option value="#0000ff">Blue</option>
-				<option value="#00ff15">Green</option>
-			</select>
-			<label for="popupSettingsActualColor">Actual Path Color</label>
-			<select id="popupSettingsActualColor" name="popupSettingsActualColor">
-				<option value="#ff0000">Red</option>
-				<option value="#0000ff" selected>Blue</option>
-				<option value="#00ff15">Green</option>
-			</select>
-			<label for="popupSettingsEmptyColor">Empty Path Color</label>
-			<select id="popupSettingsEmptyColor" name="popupSettingsEmptyColor">
-				<option value="#ff0000">Red</option>
-				<option value="#0000ff">Blue</option>
-				<option value="#00ff15" selected>Green</option>
-			</select>
-			</br>
-			</br>
-			<label for="popupSettingsNodeColor">Service Center Color</label>
-			<select id="popupSettingsNodeColor" name="popupSettingsNodeColor">
-				<option value="#ff0000" selected>Red</option>
-				<option value="#0000ff">Blue</option>
-				<option value="#00ff15">Green</option>
-			</select>
-			</br>
-			</br>
-			<button onclick="closeSettings()">Apply & Close</button>
+
+			<div id="popupSettingsTabs">
+			  <button id="popupSettingsGeneralTab" class="settingsTabLinks active" onclick="openSettingsTab(event, 'settingsGeneralContent')">General</button>
+			  <button id="popupSettingsScheduledTab" class="settingsTabLinks" onclick="openSettingsTab(event, 'settingsScheduledContent')">Scheduled</button>
+			  <button id="popupSettingsActualTab" class="settingsTabLinks" onclick="openSettingsTab(event, 'settingsActualContent')">Actual</button>
+				<button id="popupSettingsEmptyTab" class="settingsTabLinks" onclick="openSettingsTab(event, 'settingsEmptyContent')">Empty</button>
+			</div>
+
+			<div id="settingsGeneralContent" class="popupSettingsTabContent">
+				<label for="popupSettingsNodeColor">Service Center Color</label>
+				<select id="popupSettingsNodeColor" name="popupSettingsNodeColor">
+					<option value="#ff0000">Red</option>
+					<option value="#0000ff">Blue</option>
+					<option value="#00ff15">Green</option>
+					<option value="#000000" selected>Black</option>
+					<option value="#6d2b9f">Purple</option>
+					<option value="#b0530c">Orange</option>
+					<option value="#a9c732">Lime</option>
+					<option value="#b81882">Pink</option>
+				</select>
+				</br>
+				</br>
+				<label for="popupSettingsNodeSize">Service Center Size: </label>
+				<input type="number" id="popupSettingsNodeSize" name="popupSettingsNodeSize" min="1" max="10" value="5"/>
+				<label for="popupSettingsNodeLabelSize">Service Center Label Size: </label>
+				<input type="number" id="popupSettingsNodeLabelSize" name="popupSettingsNodeLabelSize" min="1" max="10" value="5"/>
+				</br>
+				</br>
+				<label for="popupSettingsPathSize">Path Size: </label>
+				<input type="number" id="popupSettingsPathSize" name="popupSettingsPathSize" min="1" max="10" value="5"/>
+				<label for="popupSettingsPathLabelSize">Path Label Size: </label>
+				<input type="number" id="popupSettingsPathLabelSize" name="popupSettingsPathLabelSize" min="1" max="10" value="5"/>
+				</br>
+				</br>
+				<label for="popupSettingsHasArrows">Has Arrows</label>
+				<input type="checkbox" id="popupSettingsHasArrows" name="popupSettingsHasArrows" checked />
+				</br>
+				<label for="popupSettingsPlotAllNodes">Plot All Service Centers</label>
+				<input type="checkbox" id="popupSettingsPlotAllNodes" name="popupSettingsPlotAllNodes">
+			</div>
+
+			<div id="settingsScheduledContent" class="popupSettingsTabContent">
+				<label for="popupSettingsScheduledColor">Scheduled Path Color</label>
+				<select id="popupSettingsScheduledColor" name="popupSettingsScheduledColor">
+					<option value="#ff0000" selected>Red</option>
+					<option value="#0000ff">Blue</option>
+					<option value="#00ff15">Green</option>
+					<option value="#000000">Black</option>
+					<option value="#6d2b9f">Purple</option>
+					<option value="#b0530c">Orange</option>
+					<option value="#a9c732">Lime</option>
+					<option value="#b81882">Pink</option>
+				</select>
+				</br>
+				</br>
+				<label for="popupSettingsScheduledDotted">Scheduled Dotted Line</label>
+				<input type="checkbox" id="popupSettingsScheduledDotted" name="popupSettingsScheduledDotted">
+			</div>
+
+			<div id="settingsActualContent" class="popupSettingsTabContent">
+				<label for="popupSettingsActualColor">Actual Path Color</label>
+				<select id="popupSettingsActualColor" name="popupSettingsActualColor">
+					<option value="#ff0000">Red</option>
+					<option value="#0000ff" selected>Blue</option>
+					<option value="#00ff15">Green</option>
+					<option value="#000000">Black</option>
+					<option value="#6d2b9f">Purple</option>
+					<option value="#b0530c">Orange</option>
+					<option value="#a9c732">Lime</option>
+					<option value="#b81882">Pink</option>
+				</select>
+				</br>
+				</br>
+				<label for="popupSettingsActualDotted">Actual Dotted Line</label>
+				<input type="checkbox" id="popupSettingsActualDotted" name="popupSettingsActualDotted">
+			</div>
+
+			<div id="settingsEmptyContent" class="popupSettingsTabContent">
+				<label for="popupSettingsEmptyColor">Empty Path Color</label>
+				<select id="popupSettingsEmptyColor" name="popupSettingsEmptyColor">
+					<option value="#ff0000">Red</option>
+					<option value="#0000ff">Blue</option>
+					<option value="#00ff15" selected>Green</option>
+					<option value="#000000">Black</option>
+					<option value="#6d2b9f">Purple</option>
+					<option value="#b0530c">Orange</option>
+					<option value="#a9c732">Lime</option>
+					<option value="#b81882">Pink</option>
+				</select>
+				</br>
+				</br>
+				<label for="popupSettingsEmptyDotted">Empty Dotted Line</label>
+				<input type="checkbox" id="popupSettingsEmptyDotted" name="popupSettingsEmptyDotted">
+			</div>
+
+			<button id="popupSettingsCloseButton" onclick="closeSettings()">Apply All Tabs & Close</button>
 		</div>
 
 		<div id="popupError">

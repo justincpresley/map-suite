@@ -88,8 +88,9 @@ const Path = {
 
 		initialize: function(date, source, target, route)
 		{
-			var parts = date.split('-');
-			this.date = new Date(parts[0], parts[1] - 1, parts[2]);
+			//var parts = date.split('-');
+			//this.date = new Date(parts[0], parts[1] - 1, parts[2]);
+			this.date = date;
 			this.sourceSymbol = source;
 			this.targetSymbol = target;
 			this.route = route;
@@ -106,8 +107,9 @@ const Path = {
 
 		initialize: function(date, source, target, route, value)
 		{
-			var parts = date.split('-');
-			this.date = new Date(parts[0], parts[1] - 1, parts[2]);
+			//var parts = date.split('-');
+			//this.date = new Date(parts[0], parts[1] - 1, parts[2]);
+			this.date = date;
 			this.sourceSymbol = source;
 			this.targetSymbol = target;
 			this.route = route;
@@ -119,14 +121,12 @@ const Path = {
 	Empty: {
 		sourceSymbol: "",
 		targetSymbol: "",
-		route: "",
 		value: 0,
 
-		initialize: function(source, target, route, value)
+		initialize: function(source, target, value)
 		{
 			this.sourceSymbol = source;
 			this.targetSymbol = target;
-			this.route = route;
 			this.value = value;
 			return this;
 		},
@@ -150,17 +150,19 @@ const MapSettings = {
 	pathSize: 0.7,
 	pathLabelSize: 5,
 
-	nodeColor: "#ff0000",
+	nodeColor: "#000000",
 	nodeSize: 1.7,
 	nodeLabelSize: 6,
 
 	plotAllNodes: false,
-	hasArrows: false,
+	hasArrows: true,
+
+	dashSize: [2,3],
 }
 
 // Specifies the order in which the graphics should be rendered,
 // excluding the picture of the states
-const RENDER_ORDER = ["lines", "points", "text"];
+const RENDER_ORDER = ["lines", "scheduled", "actual", "empty", "points", "text"];
 
 /**
  * Arrays of objects that will be rendered by the Renderer
@@ -183,10 +185,10 @@ Returns: A Object containing Map Details information.
 const MapDetails = {
 	centers: [],
 	scheduled_paths: [],
-	render_scheduled: true,
+	render_scheduled: false,
 	actual_paths: [],
-	render_actual: true,
+	render_actual: false,
 	empty_paths: [],
-	render_empty: true,
+	render_empty: false,
 	settings: null,
 };

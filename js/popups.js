@@ -10,7 +10,6 @@ Global Variables
 *****************************************************************/
 var mapDetails = Object.create(MapDetails);	      // Global container for map details (See structs.js)
 mapDetails.settings = Object.create(MapSettings); // Settings in global map details
-var doCSVPrompt = true;							              // Tells the landing page how to behave.
 
 /*****************************************************************
 Name:
@@ -131,6 +130,22 @@ async function loadScheduled()
 
 	// Set input module's objects into MapDetails
 	mapDetails.scheduled_paths = paths;
+
+	// Check the Show
+	mapDetails.render_scheduled = true;
+
+	//Update dropdowns
+	clearDropdowns();
+	populateDropdowns()
+
+	// Make Checkmark appear
+	$("#sidebarScheduledShow").prop("checked", true);
+
+	// Map Type Conflicts
+	if($("#sidebarEmptyShow").is(':checked')){
+		mapDetails.render_empty = false;
+		$("#sidebarEmptyShow").prop("checked", false);
+	}
 }
 
 /*****************************************************************
@@ -146,6 +161,13 @@ function showScheduled(ele)
 	}else{
 		mapDetails.render_scheduled = false;
 	}
+
+	// Map Type Conflicts
+	if($("#sidebarEmptyShow").is(':checked')){
+		mapDetails.render_empty = false;
+		$("#sidebarEmptyShow").prop("checked", false);
+	}
+
 	// For debug
 	console.log(mapDetails);
 
@@ -182,6 +204,22 @@ async function loadActual()
 
 	// Set input module's objects into MapDetails
 	mapDetails.actual_paths = paths;
+
+	// Check the Show
+	mapDetails.render_actual = true;
+
+	// Update the dropdowns
+	clearDropdowns();
+	populateDropdowns();
+
+	// Make Checkmark appear
+	$("#sidebarActualShow").prop("checked", true);
+
+	// Map Type Conflicts
+	if($("#sidebarEmptyShow").is(':checked')){
+		mapDetails.render_empty = false;
+		$("#sidebarEmptyShow").prop("checked", false);
+	}
 }
 
 /*****************************************************************
@@ -197,6 +235,13 @@ function showActual(ele)
 	}else{
 		mapDetails.render_actual = false;
 	}
+
+	// Map Type Conflicts
+	if($("#sidebarEmptyShow").is(':checked')){
+		mapDetails.render_empty = false;
+		$("#sidebarEmptyShow").prop("checked", false);
+	}
+
 	// For debug
 	console.log(mapDetails);
 
@@ -223,7 +268,7 @@ async function loadEmpty()
 		{
 			p = item.split(",");
 			paths.push( Object.create(Path.Empty).initialize(
-				p[0], p[1], p[2], p[3]
+				p[0], p[1], p[2]
 			) );
 		}
 	});
@@ -233,6 +278,26 @@ async function loadEmpty()
 
 	// Set input module's objects into MapDetails
 	mapDetails.empty_paths = paths;
+
+	// Check the Show
+	mapDetails.render_empty = true;
+
+	//Update dropdowns
+	clearDropdowns();
+	populateDropdowns()
+
+	// Make Checkmark appear
+	$("#sidebarEmptyShow").prop("checked", true);
+
+	// Map Type Conflicts
+	if($("#sidebarScheduledShow").is(':checked')){
+		mapDetails.render_scheduled = false;
+		$("#sidebarScheduledShow").prop("checked", false);
+	}
+	if($("#sidebarActualShow").is(':checked')){
+		mapDetails.render_actual = false;
+		$("#sidebarActualShow").prop("checked", false);
+	}
 }
 
 /*****************************************************************
@@ -248,6 +313,17 @@ function showEmpty(ele)
 	}else{
 		mapDetails.render_empty = false;
 	}
+
+	// Map Type Conflicts
+	if($("#sidebarScheduledShow").is(':checked')){
+		mapDetails.render_scheduled = false;
+		$("#sidebarScheduledShow").prop("checked", false);
+	}
+	if($("#sidebarActualShow").is(':checked')){
+		mapDetails.render_actual = false;
+		$("#sidebarActualShow").prop("checked", false);
+	}
+
 	// For debug
 	console.log(mapDetails);
 
@@ -261,7 +337,7 @@ Description: Loads the service centers from the document. Simply
 Parameters: None
 Returns: None
 *****************************************************************/
-async function loadCenters()
+async function loadCenters(doCSVPrompt)
 {
 	var csvFile;
 	if(doCSVPrompt)
@@ -298,8 +374,6 @@ async function loadCenters()
 	// Set input module's objects into MapDetails
 	mapDetails.centers = centers;
 
-	// Update settings dialog to have cities list
-	populateMapSettings();
 }
 
 /*****************************************************************
@@ -323,7 +397,145 @@ Returns: None
 function skipCSVMenu()
 {
 	$("#popupAskCenters").hide();
-	loadCenters();
+	loadCenters(false);
+}
+
+
+/**
+ * Saves all settings (in mapDetails.settings) to local storage
+ */
+function saveSettings(){
+	if (typeof(Storage) !== "undefined") {
+		window.localStorage.scheduledColor = mapDetails.settings.scheduledColor;
+		window.localStorage.actualColor = mapDetails.settings.actualColor;
+		window.localStorage.emptyColor = mapDetails.settings.emptyColor;
+		window.localStorage.pathLabelSize = mapDetails.settings.pathLabelSize * 5 / MapSettings.pathLabelSize;
+		window.localStorage.nodeLabelSize = mapDetails.settings.nodeLabelSize * 5 / MapSettings.nodeLabelSize;
+		window.localStorage.nodeSize = mapDetails.settings.nodeSize * 5 / MapSettings.nodeSize;
+		window.localStorage.pathSize = mapDetails.settings.pathSize * 5 / MapSettings.pathSize;
+		window.localStorage.hasArrows = mapDetails.settings.hasArrows;
+		window.localStorage.plotAllNodes = mapDetails.settings.plotAllNodes;
+		window.localStorage.nodeColor = mapDetails.settings.nodeColor;
+		window.localStorage.scheduledDotted = mapDetails.settings.scheduledDotted;
+		window.localStorage.actualDotted = mapDetails.settings.actualDotted;
+		window.localStorage.emptyDotted = mapDetails.settings.emptyDotted;
+	}
+}
+
+
+/**
+ * Loads all settings to mapDetails.settings from local storage, or load defaults from MapSettings
+ * if local storage is not available.
+ */
+function loadSettings(){
+	if (typeof(Storage) !== "undefined") {
+
+		if(!window.localStorage.scheduledColor){
+			window.localStorage.scheduledColor = MapSettings.scheduledColor;
+		}
+		window.document.getElementById('popupSettingsScheduledColor').value = window.localStorage.scheduledColor;
+		mapDetails.settings.scheduledColor = document.getElementById('popupSettingsScheduledColor').value;
+
+		if(!window.localStorage.actualColor){
+			window.localStorage.actualColor = MapSettings.actualColor;
+		}
+		window.document.getElementById('popupSettingsActualColor').value = window.localStorage.actualColor;
+		mapDetails.settings.actualColor = document.getElementById('popupSettingsActualColor').value;
+
+		if(!window.localStorage.emptyColor){
+			window.localStorage.emptyColor = MapSettings.emptyColor;
+		}
+		window.document.getElementById('popupSettingsEmptyColor').value = window.localStorage.emptyColor;
+		mapDetails.settings.emptyColor = document.getElementById('popupSettingsEmptyColor').value;
+
+		if(!window.localStorage.pathLabelSize){
+			window.localStorage.pathLabelSize = 5;
+		}
+		window.document.getElementById('popupSettingsPathLabelSize').value = window.localStorage.pathLabelSize;
+		mapDetails.settings.pathLabelSize = document.getElementById('popupSettingsPathLabelSize').value;
+		mapDetails.settings.pathLabelSize = mapDetails.settings.pathLabelSize * MapSettings.pathLabelSize / 5;
+
+		if(!window.localStorage.nodeLabelSize){
+			window.localStorage.nodeLabelSize = 5;
+		}
+		window.document.getElementById('popupSettingsNodeLabelSize').value = window.localStorage.nodeLabelSize;
+		mapDetails.settings.nodeLabelSize = document.getElementById('popupSettingsNodeLabelSize').value;
+		mapDetails.settings.nodeLabelSize = mapDetails.settings.nodeLabelSize * MapSettings.nodeLabelSize / 5;
+
+		if(!window.localStorage.nodeSize){
+			window.localStorage.nodeSize = 5;
+		}
+		window.document.getElementById('popupSettingsNodeSize').value = window.localStorage.nodeSize;
+		mapDetails.settings.nodeSize = document.getElementById('popupSettingsNodeSize').value;
+		mapDetails.settings.nodeSize = mapDetails.settings.nodeSize * MapSettings.nodeSize / 5;
+
+		if(!window.localStorage.pathSize){
+			window.localStorage.pathSize = 5;
+		}
+		window.document.getElementById('popupSettingsPathSize').value = window.localStorage.pathSize;
+		mapDetails.settings.pathSize = document.getElementById('popupSettingsPathSize').value;
+		mapDetails.settings.pathSize = mapDetails.settings.pathSize * MapSettings.pathSize / 5;
+
+		if(!window.localStorage.hasArrows){
+			window.localStorage.hasArrows = MapSettings.hasArrows;
+		}
+		var $hasArrows = true;
+		if(window.localStorage.hasArrows == 'false'){
+			$hasArrows = false;
+		}
+		window.document.getElementById('popupSettingsHasArrows').checked = $hasArrows;
+		mapDetails.settings.hasArrows = document.getElementById('popupSettingsHasArrows').checked;
+
+		if(!window.localStorage.plotAllNodes){
+			window.localStorage.plotAllNodes = MapSettings.plotAllNodes;
+		}
+		var $plotAllNodes = true;
+		if(window.localStorage.plotAllNodes == 'false'){
+			$plotAllNodes = false;
+		}
+		window.document.getElementById('popupSettingsPlotAllNodes').checked = $plotAllNodes;
+		mapDetails.settings.plotAllNodes = document.getElementById('popupSettingsPlotAllNodes').checked;
+
+		if(!window.localStorage.nodeColor){
+			window.localStorage.nodeColor = MapSettings.nodeColor;
+		}
+		window.document.getElementById('popupSettingsNodeColor').value = window.localStorage.nodeColor;
+		mapDetails.settings.nodeColor = document.getElementById('popupSettingsNodeColor').value;
+
+		if(!window.localStorage.scheduledDotted){
+			window.localStorage.scheduledDotted = MapSettings.scheduledDotted;
+		}
+		var $scheduledDotted = true;
+		if(window.localStorage.scheduledDotted == 'false'){
+			$scheduledDotted = false;
+		}
+		window.document.getElementById('popupSettingsScheduledDotted').checked = $scheduledDotted;
+		mapDetails.settings.scheduledDotted = document.getElementById('popupSettingsScheduledDotted').checked;
+
+		if(!window.localStorage.actualDotted){
+			window.localStorage.actualDotted = MapSettings.actualDotted;
+		}
+		var $actualDotted = true;
+		if(window.localStorage.actualDotted == 'false'){
+			$actualDotted = false;
+		}
+		window.document.getElementById('popupSettingsActualDotted').checked = $actualDotted;
+		mapDetails.settings.actualDotted = document.getElementById('popupSettingsActualDotted').checked;
+
+		if(!window.localStorage.emptyDotted){
+			window.localStorage.emptyDotted = MapSettings.emptyDotted;
+		}
+		var $emptyDotted = true;
+		if(window.localStorage.emptyDotted == 'false'){
+			$emptyDotted = false;
+		}
+		window.document.getElementById('popupSettingsEmptyDotted').checked = $emptyDotted;
+		mapDetails.settings.emptyDotted = document.getElementById('popupSettingsEmptyDotted').checked;
+
+
+	} else {
+		console.log("No local storage support.");
+	}
 }
 
 /*****************************************************************
@@ -340,7 +552,10 @@ function checkCSV()
 		showCSVMenu();
 	}
 }
-$(() => { checkCSV(); });
+$(() => {
+	checkCSV();
+	loadSettings();
+});
 
 /*****************************************************************
 Name:
@@ -370,9 +585,12 @@ function closeSettings()
 	mapDetails.settings.hasArrows = document.getElementById('popupSettingsHasArrows').checked;
 	mapDetails.settings.plotAllNodes = document.getElementById('popupSettingsPlotAllNodes').checked;
 	mapDetails.settings.nodeColor = document.getElementById('popupSettingsNodeColor').value;
-	mapDetails.settings.idealColor = document.getElementById('popupSettingsScheduledColor').value;
+	mapDetails.settings.scheduledColor = document.getElementById('popupSettingsScheduledColor').value;
 	mapDetails.settings.actualColor = document.getElementById('popupSettingsActualColor').value;
 	mapDetails.settings.emptyColor = document.getElementById('popupSettingsEmptyColor').value;
+	mapDetails.settings.scheduledDotted = document.getElementById('popupSettingsScheduledDotted').checked;
+	mapDetails.settings.actualDotted = document.getElementById('popupSettingsActualDotted').checked;
+	mapDetails.settings.emptyDotted = document.getElementById('popupSettingsEmptyDotted').checked;
 
 	// For debug
 	console.log(mapDetails.settings);
@@ -384,7 +602,10 @@ function closeSettings()
 	mapDetails.settings.nodeLabelSize = mapDetails.settings.nodeLabelSize * MapSettings.nodeLabelSize / 5;
 	mapDetails.settings.nodeSize = mapDetails.settings.nodeSize * MapSettings.nodeSize / 5;
 	mapDetails.settings.pathSize = mapDetails.settings.pathSize * MapSettings.pathSize / 5;
-	mapDetails.settings.valueLabelSize = mapDetails.settings.valueLabelSize * MapSettings.valueLabelSize / 5;
+	mapDetails.settings.pathLabelSize = mapDetails.settings.pathLabelSize * MapSettings.pathLabelSize / 5;
+
+	// save settings to local storage for browser refresh
+	saveSettings();
 
 	// Apply settings
 	updateMapSettings();
@@ -399,4 +620,25 @@ Returns:
 function exportToPDF()
 {
 	producePopupError("Coming Soon")
+}
+
+function openSettingsTab(evt, cityName) {
+  // Declare all variables
+  var i, tabcontent, tablinks;
+
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("popupSettingsTabContent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("settingsTabLinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(cityName).style.display = "block";
+  evt.currentTarget.className += " active";
 }
