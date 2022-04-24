@@ -4,7 +4,7 @@ File Infomation:
 *****************************************************************/
 
 /*****************************************************************
-vestigial 
+vestigial
 Name: Sort Cities by English Name
 Description: Sorts cities by their English name so they can
 	more easily be found in the settings. Uses bubble sort.
@@ -74,16 +74,26 @@ function sortTarget(paths)
 function clearDropdowns()
 {
 	$("#topbarFiltersSrc").empty();
-	$("#topbarFiltersSrc").append("<option value =\"" + "NONE"+"</option>");
+	$("#topbarFiltersSrc").append("<option value =\"" + "NONE" + "</option>");
 	$("#topbarFiltersDes").empty();
 	$("#topbarFiltersDes").append("<option value =\"" + "NONE"+"</option>");
+}
+
+function checkIfInDropDown(id, val)
+{
+	if(!$(id).find("option:contains('" + val  + "')").length){
+		return true;
+	}
+	return false;
 }
 
 function populateDropdowns()
 {
 	var renderScheduled = mapDetails.render_scheduled;
-    var renderActual = mapDetails.render_actual;
+	var renderActual = mapDetails.render_actual;
 	var renderEmpty = mapDetails.render_empty;
+
+	$("#topbarFiltersDes").append("<option value =\"ALL\">ALL</option>");
 
 	if (renderScheduled == true)
 	{
@@ -92,8 +102,12 @@ function populateDropdowns()
 		for (var idx1 in sortedScheduled)
 		{
 			var center = sortedScheduled[idx1]
-			$("#topbarFiltersSrc").append("<option value=\"" + center.sourceSymbol + "\">" + center.sourceSymbol + "</option>");
-			$("#topbarFiltersDes").append("<option value=\"" + center.targetSymbol + "\">" + center.targetSymbol + "</option>");	
+			if (checkIfInDropDown("#topbarFiltersSrc", center.sourceSymbol)) {
+				$("#topbarFiltersSrc").append("<option value=\"" + center.sourceSymbol + "\">" + center.sourceSymbol + "</option>");
+			}
+			if (checkIfInDropDown("#topbarFiltersDes", center.targetSymbol)) {
+				$("#topbarFiltersDes").append("<option value=\"" + center.targetSymbol + "\">" + center.targetSymbol + "</option>");
+			}
 		}
 	}
 	if (renderActual == true)
@@ -103,39 +117,12 @@ function populateDropdowns()
 		for (var idx2 in sortedActual)
 		{
 			var center = sortedActual[idx2];
-			$("#topbarFiltersSrc").append("<option value=\"" + center.sourceSymbol + "\">" + center.sourceSymbol + "</option>");
-			$("#topbarFiltersDes").append("<option value=\"" + center.targetSymbol + "\">" + center.targetSymbol + "</option>");
+			if (checkIfInDropDown("#topbarFiltersSrc", center.sourceSymbol)) {
+				$("#topbarFiltersSrc").append("<option value=\"" + center.sourceSymbol + "\">" + center.sourceSymbol + "</option>");
+			}
+			if (checkIfInDropDown("#topbarFiltersDes", center.targetSymbol)) {
+				$("#topbarFiltersDes").append("<option value=\"" + center.targetSymbol + "\">" + center.targetSymbol + "</option>");
+			}
 		}
-	}
-	if (renderEmpty == true)
-	{
-		var sortedEmpty = sortTarget(mapDetails.empty_paths);
-		console.log(sortedEmpty)
-		for (var idx3 in sortedEmpty)
-		{
-			var center = sortedEmpty[idx3];
-			$("#topbarFiltersSrc").append("<option value=\"" + center.sourceSymbol + "\">" + center.sourceSymbol + "</option>");
-			$("#topbarFiltersDes").append("<option value=\"" + center.targetSymbol + "\">" + center.targetSymbol + "</option>");
-		}
-	}
-}
-
-/*****************************************************************
-vestigial
-Name: Populate Map Settings
-Description: Updates the dropdowns to let the user choose a
-	service center. Requires that mapDetails.centers be
-	populated.
-Parameters: None
-Returns: None
-*****************************************************************/
-function populateMapSettings()
-{
-	var sortedCities = sortCities(mapDetails.centers);
-	for(centerIdx in sortedCities)
-	{
-		var center = sortedCities[centerIdx];
-		$("#topbarFiltersSrc").append("<option value=\"" + center.symbol + "\">" + center.name + "</option>");
-		$("#topbarFiltersDes").append("<option value=\"" + center.symbol + "\">" + center.name + "</option>");
 	}
 }

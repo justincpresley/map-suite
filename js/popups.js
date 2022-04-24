@@ -136,7 +136,7 @@ async function loadScheduled()
 
 	//Update dropdowns
 	clearDropdowns();
-	populateDropdowns()
+	populateDropdowns();
 
 	// Make Checkmark appear
 	$("#sidebarScheduledShow").prop("checked", true);
@@ -146,6 +146,12 @@ async function loadScheduled()
 		mapDetails.render_empty = false;
 		$("#sidebarEmptyShow").prop("checked", false);
 	}
+
+	// Disable Input
+	$("#topbarFiltersSrc").prop("disabled", false);
+	$("#topbarFiltersDes").prop("disabled", false);
+	$("#topbarFiltersDateFrom").prop("disabled", false);
+	$("#topbarFiltersDateTo").prop("disabled", false);
 }
 
 /*****************************************************************
@@ -167,6 +173,12 @@ function showScheduled(ele)
 		mapDetails.render_empty = false;
 		$("#sidebarEmptyShow").prop("checked", false);
 	}
+
+	// Disable Input
+	$("#topbarFiltersSrc").prop("disabled", false);
+	$("#topbarFiltersDes").prop("disabled", false);
+	$("#topbarFiltersDateFrom").prop("disabled", false);
+	$("#topbarFiltersDateTo").prop("disabled", false);
 
 	// For debug
 	console.log(mapDetails);
@@ -220,6 +232,12 @@ async function loadActual()
 		mapDetails.render_empty = false;
 		$("#sidebarEmptyShow").prop("checked", false);
 	}
+
+	// Disable Input
+	$("#topbarFiltersSrc").prop("disabled", false);
+	$("#topbarFiltersDes").prop("disabled", false);
+	$("#topbarFiltersDateFrom").prop("disabled", false);
+	$("#topbarFiltersDateTo").prop("disabled", false);
 }
 
 /*****************************************************************
@@ -241,6 +259,12 @@ function showActual(ele)
 		mapDetails.render_empty = false;
 		$("#sidebarEmptyShow").prop("checked", false);
 	}
+
+	// Disable Input
+	$("#topbarFiltersSrc").prop("disabled", false);
+	$("#topbarFiltersDes").prop("disabled", false);
+	$("#topbarFiltersDateFrom").prop("disabled", false);
+	$("#topbarFiltersDateTo").prop("disabled", false);
 
 	// For debug
 	console.log(mapDetails);
@@ -284,7 +308,7 @@ async function loadEmpty()
 
 	//Update dropdowns
 	clearDropdowns();
-	populateDropdowns()
+	populateDropdowns();
 
 	// Make Checkmark appear
 	$("#sidebarEmptyShow").prop("checked", true);
@@ -298,6 +322,14 @@ async function loadEmpty()
 		mapDetails.render_actual = false;
 		$("#sidebarActualShow").prop("checked", false);
 	}
+
+	// Disable Input
+	$("#topbarFiltersSrc").prop("disabled", true);
+	$("#topbarFiltersDes").prop("disabled", true);
+	$("#topbarFiltersDateFrom").prop("disabled", true);
+	$("#topbarFiltersDateTo").prop("disabled", true);
+
+	routeProcessing();
 }
 
 /*****************************************************************
@@ -310,8 +342,20 @@ function showEmpty(ele)
 {
 	if($(ele).is(':checked')){
 		mapDetails.render_empty = true;
+
+		// Disable Input
+		$("#topbarFiltersSrc").prop("disabled", true);
+		$("#topbarFiltersDes").prop("disabled", true);
+		$("#topbarFiltersDateFrom").prop("disabled", true);
+		$("#topbarFiltersDateTo").prop("disabled", true);
 	}else{
 		mapDetails.render_empty = false;
+
+		// Disable Input
+		$("#topbarFiltersSrc").prop("disabled", false);
+		$("#topbarFiltersDes").prop("disabled", false);
+		$("#topbarFiltersDateFrom").prop("disabled", false);
+		$("#topbarFiltersDateTo").prop("disabled", false);
 	}
 
 	// Map Type Conflicts
@@ -363,13 +407,17 @@ async function loadCenters(doCSVPrompt)
 		{
 			p = item.split(",");
 			centers.push( Object.create(ServiceCenter).initialize(
-				p[1], p[2], parseFloat(p[3]), parseFloat(p[4])
+				p[1], p[2], parseFloat(p[4]), parseFloat(p[5])
 			));
+
+			mapDetails.centersObj[p[1]] = Object.create(ServiceCenter).initialize(
+				p[1], p[2], parseFloat(p[4]), parseFloat(p[5]));
 		}
 	});
 
 	// For debug
 	console.log(centers);
+	console.log(mapDetails.centersObj);
 
 	// Set input module's objects into MapDetails
 	mapDetails.centers = centers;

@@ -70,6 +70,11 @@ async function generateText()
 
 	var text = "Map Types Shown: " + mapTypes + "<br />" + "Origin: " + src + " Destination: " + dst;
 
+	if($("#sidebarEmptyShow").is(':checked'))
+	{
+		text = "Map Types Shown: " + mapTypes + "<br /> Origin: ALL Destination: ALL";
+	}
+
 	$(document.body).append("<div id=\"tempExportText\" style=\"text-align:center;width: 1000px;\"><p>" + text + "</p></div>");
 
 	return await elementToImage($("#tempExportText"));

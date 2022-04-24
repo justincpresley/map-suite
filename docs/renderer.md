@@ -24,7 +24,7 @@ addServiceCenter(CKV);
 ```
 Second, register the route using the labels of the service center. 
 ```javascript
-addRoute("NAS", "CKV", 3, ROUTE_TYPES.EMPTY);
+addRoute("NAS", "CKV", 3, MapType.Empty);
 ```
 
 Lastly, render the map by calling render().
@@ -69,17 +69,27 @@ clearServiceCenters();
 ```
 If we want to remove a route, we use the same parameters as we do when creating the route. 
 ```javascript
-removeRoute("NAS", "CKV", 3, ROUTE_TYPES.EMPTY);
+removeRoute("NAS", "CKV", 3, MapType.Empty);
 ```
 If we want to remove all routes of a route type (for example, delete all empty routes):
 ```javascript
-clearRouteType(ROUTE_TYPES.EMPTY);
+clearRouteType(MapType.Empty);
+```
+If we want to remove all route types:
+```javascript
+clearRoutes();
+```
+If we want to remove everything from the map, including all route types and service centers:
+```javascript
+clearMapBuffers();
 ```
 Functions used in this tutorial:
 * [`removeServiceCenter`](#removeservicecenter)`(center)`
 * [`clearServiceCenters`](#clearservicecenters)`()`
 * [`removeRoute`](#removeroute)`(centerA, centerB, label, mapType)`
 * [`clearRouteType`](#clearroutetype)`(routeType)`
+* [`clearMapBuffers`](#clearmapbuffers)`()`
+* [`clearRoutes`](#clearroutes)`()`
 
 # Centering the Map
 Centering the map is very simple:
@@ -98,8 +108,12 @@ You will need these. These functions are useful for changing and updating the ma
   * Registers a service center to the renderer so that it can be rendered later.
 * [`centerMap`](#centermap)`()`
   * Centers the map on the screen.
+* [`clearMapBuffers`](#clearmapbuffers)`()`
+  * Clears all buffers from the renderer.
 * [`clearRouteType`](#clearroutetype)`(routeType)`
   * Clears a route type from memory and de-renders it.
+* [`clearRoutes`](#clearroutes)`()`
+  * Clears all route types from memory and de-renders them.
 * [`clearServiceCenters`](#clearservicecenters)`()`
   * Clears the Service Center buffer from the Renderer and re-renders the map.
 * [`removeRoute`](#removeroute)`(centerA, centerB, label, mapType)`
@@ -200,7 +214,7 @@ You probably will not need these. These functions do not need to be used to modi
   * centerB: The label of the second service center
   * label: The label of the route (such as the number of empty loads)
   * mapType: One of the three values:
-    * ROUTE_TYPES.IDEAL, ROUTE_TYPES.ACTUAL, ROUTE_TYPES.EMPTY
+    * MapType.Ideal, MapTypes.Actual, MapTypes.Empty
 * Returns: None
 * Usage: `addRoute(centerA, centerB, label, mapType)`
 ## `addServiceCenter`
@@ -227,6 +241,25 @@ You probably will not need these. These functions do not need to be used to modi
 * Parameters: None
 * Returns: None
 * Usage: `clearMap()`
+## `clearMapBuffers`
+* Description: Clears all buffers from the renderer. This includes the service center buffers and all route type buffers.
+* Parameters: None
+* Returns: None
+* Usage: `clearMapBuffers()`
+## `clearRoutes`
+* Description: Clears all route types from memory and de-renders them.
+* Parameters: None
+* Returns: None
+* Usage: `clearRoutes()`
+## `clearRouteType`
+* Description: Clears a route type from memory and de-renders it.
+* Parameters: 
+  * routeType: One of the three values:
+    * MapType.Ideal
+    * MapType.Actual
+    * MapType.Empty
+* Returns: None
+* Usage: `clearRouteType(routeType)`
 ## `createScrollEventListener`
 * Description: Creates a scroll event listener and handles the event to provide scrolling capability. jCanvas does not provide a scroll event for us :(
 * Parameters: 
@@ -312,9 +345,9 @@ You probably will not need these. These functions do not need to be used to modi
 	* centerB: The ending service center label
 	* label: The label to draw alongside the line. The number of empty loads, for example.
   * mapType: One of the three values:
-    * ROUTE_TYPES.IDEAL
-    * ROUTE_TYPES.ACTUAL
-    * ROUTE_TYPES.EMPTY
+    * MapType.Ideal
+    * MapType.Actual
+    * MapType.Empty
 * Returns: None
 * Usage: `plotRoute(centerA, centerB, label, mapType)`
 ## `plotRoutes`
@@ -333,22 +366,13 @@ You probably will not need these. These functions do not need to be used to modi
 * Parameters: None
 * Returns: None
 * Usage: `plotServiceCenters()`
-## `clearRouteType`
-* Description: Clears a route type from memory and de-renders it.
-* Parameters: 
-  * routeType: One of the three values:
-    * ROUTE_TYPES.IDEAL
-    * ROUTE_TYPES.ACTUAL
-    * ROUTE_TYPES.EMPTY
-* Returns: None
-* Usage: `clearRouteType(routeType)`
 ## `removeRoute`
 * Description: Removes a route from the renderer's route buffers
 * Parameters: 
   * centerA: The label of the first service center (for example, "NAS")
   * centerB: The label of the second service center
   * label: The label of the route (such as the number of empty loads)
-  * mapType: One of the three values: ROUTE_TYPES.IDEAL, ROUTE_TYPES.ACTUAL, ROUTE_TYPES.EMPTY
+  * mapType: One of the three values: MapType.Ideal, MapType.Actual, MapType.Empty
 * Returns: None
 * Usage: `removeRoute(centerA, centerB, label, mapType)`
 ## `removeServiceCenter`

@@ -184,6 +184,7 @@ Returns: A Object containing Map Details information.
 *****************************************************************/
 const MapDetails = {
 	centers: [],
+	centersObj: {},
 	scheduled_paths: [],
 	render_scheduled: false,
 	actual_paths: [],

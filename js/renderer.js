@@ -457,6 +457,19 @@ function removeServiceCenter($center) {
 	}
 }
 
+
+/**
+ * Clears all buffers from the renderer. This includes the service center buffers
+ * and all route type buffers.
+ */
+function clearMapBuffers(){
+	RendererBuffer.scheduled_paths = [];
+	RendererBuffer.actual_paths = [];
+	RendererBuffer.empty_paths = [];
+	RendererBuffer.centers = [];
+	updateMapSettings();
+}
+
 /**
  * Clears the Service Center buffer from the Renderer and re-renders the map.
  */
@@ -850,6 +863,17 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 
 	reorderGroups();
 
+}
+
+/**
+ * Clears all route types from memory and de-renders them.
+ */
+function clearRoutes(){
+	RendererBuffer.scheduled_paths = [];
+	RendererBuffer.actual_paths = [];
+	RendererBuffer.empty_paths = [];
+
+	updateMapSettings();
 }
 
 /**
