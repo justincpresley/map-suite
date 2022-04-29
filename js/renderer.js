@@ -5,6 +5,8 @@ File Infomation:
 		as render the basic map of the United States.
 *****************************************************************/
 
+var rendererBuffer = new RendererBuffer();
+
 /**
  * Re-renders the map with new settings applied. Alias for `updateMapSettings()`.
  */
@@ -434,24 +436,24 @@ function longLatToCoords($long, $lat) {
  */
 function addServiceCenter($center) {
 	var exists = false;
-	for (var i = 0; i < RendererBuffer.centers.length; i++) {
-		if (RendererBuffer.centers[i].symbol == $center.symbol) {
+	for (var i = 0; i < rendererBuffer.centers.length; i++) {
+		if (rendererBuffer.centers[i].symbol == $center.symbol) {
 			exists = true;
 		}
 	}
 	if (!exists) {
-		RendererBuffer.centers.push($center);
+		rendererBuffer.centers.push($center);
 	}
 }
 
 /**
- * Removes a ServiceCenter from the RendererBuffer
+ * Removes a ServiceCenter from the rendererBuffer
  * @param {ServiceCenter} $center ServiceCenter to be removed
  */
 function removeServiceCenter($center) {
-	for (var i = 0; i < RendererBuffer.centers.length; i++) {
-		if (RendererBuffer.centers[i].symbol == $center.symbol) {
-			RendererBuffer.centers.splice(i, 1);
+	for (var i = 0; i < rendererBuffer.centers.length; i++) {
+		if (rendererBuffer.centers[i].symbol == $center.symbol) {
+			rendererBuffer.centers.splice(i, 1);
 			i--;
 		}
 	}
@@ -463,10 +465,10 @@ function removeServiceCenter($center) {
  * and all route type buffers.
  */
 function clearMapBuffers(){
-	RendererBuffer.scheduled_paths = [];
-	RendererBuffer.actual_paths = [];
-	RendererBuffer.empty_paths = [];
-	RendererBuffer.centers = [];
+	rendererBuffer.scheduled_paths = [];
+	rendererBuffer.actual_paths = [];
+	rendererBuffer.empty_paths = [];
+	rendererBuffer.centers = [];
 	updateMapSettings();
 }
 
@@ -474,7 +476,7 @@ function clearMapBuffers(){
  * Clears the Service Center buffer from the Renderer and re-renders the map.
  */
 function clearServiceCenters() {
-	RendererBuffer.centers = [];
+	rendererBuffer.centers = [];
 	updateMapSettings();
 }
 
@@ -483,12 +485,12 @@ function clearServiceCenters() {
  * the global list (MapDetails.center) and returns an array containing the
  * longitude and latitude of the service cetner.
  * @param {string} $symbol The label, or id, of the service center.
- * @returns A 2-element array: `[longitude, latitude]`.
+ * @returns A 2-element array: `[longitude, latitude]`. Returns `null` if they don't exist.
  */
 function getServiceCenterCoords($symbol) {
-	for (var i = 0; i < RendererBuffer.centers.length; i++) {
-		if (RendererBuffer.centers[i].symbol == $symbol) {
-			return [RendererBuffer.centers[i].longitude, RendererBuffer.centers[i].latitude];
+	for (var i = 0; i < rendererBuffer.centers.length; i++) {
+		if (rendererBuffer.centers[i].symbol == $symbol) {
+			return [rendererBuffer.centers[i].longitude, rendererBuffer.centers[i].latitude];
 		}
 	}
 	return null;
@@ -498,8 +500,8 @@ function getServiceCenterCoords($symbol) {
  * Iterates through all loaded service centers and plots them.
  */
 function plotServiceCenters() {
-	for (var i = 0; i < RendererBuffer.centers.length; i++) {
-		plotServiceCenter(RendererBuffer.centers[i].symbol);
+	for (var i = 0; i < rendererBuffer.centers.length; i++) {
+		plotServiceCenter(rendererBuffer.centers[i].symbol);
 	}
 }
 
@@ -561,6 +563,12 @@ function plotPoint($long, $lat, { $label = "", $color = mapDetails.settings.node
 		dragstop: resetClickableBackground, // reset position on mouse release
 	});
 
+	// Setting for draggable labels
+	$dragGroups = ['map'];   // this group enables global dragging
+	if(mapDetails.settings.draggableLabels){
+		$dragGroups = [];
+	}
+
 	$mapCanvas.drawText({
 		fillStyle: $labelColor,
 		x: $coords[0] * $mapCanvas.getLayerGroup('map')[1].scale,
@@ -576,7 +584,7 @@ function plotPoint($long, $lat, { $label = "", $color = mapDetails.settings.node
 		layer: true,
 		groups: ['map', 'text'],
 		draggable: true,
-		dragGroups: ['map'],				// this group enables global dragging
+		dragGroups: $dragGroups,				
 		dragstop: resetClickableBackground, // reset position on mouse release
 	});
 
@@ -594,36 +602,36 @@ function plotPoint($long, $lat, { $label = "", $color = mapDetails.settings.node
 function addRoute($centerA, $centerB, $label, $mapType) {
 	if ($mapType == MapType.Scheduled) {
 		$alreadyExists = false;
-		for (var i = 0; i < RendererBuffer.scheduled_paths.length; i++) {
-			if (RendererBuffer.scheduled_paths[i].$centerA == $centerA && RendererBuffer.scheduled_paths[i].$centerB == $centerB && RendererBuffer.scheduled_paths[i].$label == $label) {
+		for (var i = 0; i < rendererBuffer.scheduled_paths.length; i++) {
+			if (rendererBuffer.scheduled_paths[i].$centerA == $centerA && rendererBuffer.scheduled_paths[i].$centerB == $centerB && rendererBuffer.scheduled_paths[i].$label == $label) {
 				$alreadyExists = true;
 				break;
 			}
 		}
 		if (!$alreadyExists) {
-			RendererBuffer.scheduled_paths.push({ $centerA, $centerB, $label });
+			rendererBuffer.scheduled_paths.push({ $centerA, $centerB, $label });
 		}
 	} else if ($mapType == MapType.Actual) {
 		$alreadyExists = false;
-		for (var i = 0; i < RendererBuffer.actual_paths.length; i++) {
-			if (RendererBuffer.actual_paths[i].$centerA == $centerA && RendererBuffer.actual_paths[i].$centerB == $centerB && RendererBuffer.actual_paths[i].$label == $label) {
+		for (var i = 0; i < rendererBuffer.actual_paths.length; i++) {
+			if (rendererBuffer.actual_paths[i].$centerA == $centerA && rendererBuffer.actual_paths[i].$centerB == $centerB && rendererBuffer.actual_paths[i].$label == $label) {
 				$alreadyExists = true;
 				break;
 			}
 		}
 		if (!$alreadyExists) {
-			RendererBuffer.actual_paths.push({ $centerA, $centerB, $label });
+			rendererBuffer.actual_paths.push({ $centerA, $centerB, $label });
 		}
 	} else if ($mapType == MapType.Empty) {
 		$alreadyExists = false;
-		for (var i = 0; i < RendererBuffer.empty_paths.length; i++) {
-			if (RendererBuffer.empty_paths[i].$centerA == $centerA && RendererBuffer.empty_paths[i].$centerB == $centerB && RendererBuffer.empty_paths[i].$label == $label) {
+		for (var i = 0; i < rendererBuffer.empty_paths.length; i++) {
+			if (rendererBuffer.empty_paths[i].$centerA == $centerA && rendererBuffer.empty_paths[i].$centerB == $centerB && rendererBuffer.empty_paths[i].$label == $label) {
 				$alreadyExists = true;
 				break;
 			}
 		}
 		if (!$alreadyExists) {
-			RendererBuffer.empty_paths.push({ $centerA, $centerB, $label });
+			rendererBuffer.empty_paths.push({ $centerA, $centerB, $label });
 		}
 	}
 }
@@ -638,23 +646,23 @@ function addRoute($centerA, $centerB, $label, $mapType) {
  */
 function removeRoute($centerA, $centerB, $label, $mapType) {
 	if ($mapType == MapType.Scheduled) {
-		for (var i = 0; i < RendererBuffer.scheduled_paths.length; i++) {
-			if (RendererBuffer.scheduled_paths[i].$centerA == $centerA && RendererBuffer.scheduled_paths[i].$centerB == $centerB && RendererBuffer.scheduled_paths[i].$label == $label) {
-				RendererBuffer.scheduled_paths.splice(i, 1);
+		for (var i = 0; i < rendererBuffer.scheduled_paths.length; i++) {
+			if (rendererBuffer.scheduled_paths[i].$centerA == $centerA && rendererBuffer.scheduled_paths[i].$centerB == $centerB && rendererBuffer.scheduled_paths[i].$label == $label) {
+				rendererBuffer.scheduled_paths.splice(i, 1);
 				i--;
 			}
 		}
 	} else if ($mapType == MapType.Actual) {
-		for (var i = 0; i < RendererBuffer.actual_paths.length; i++) {
-			if (RendererBuffer.actual_paths[i].$centerA == $centerA && RendererBuffer.actual_paths[i].$centerB == $centerB && RendererBuffer.actual_paths[i].$label == $label) {
-				RendererBuffer.actual_paths.splice(i, 1);
+		for (var i = 0; i < rendererBuffer.actual_paths.length; i++) {
+			if (rendererBuffer.actual_paths[i].$centerA == $centerA && rendererBuffer.actual_paths[i].$centerB == $centerB && rendererBuffer.actual_paths[i].$label == $label) {
+				rendererBuffer.actual_paths.splice(i, 1);
 				i--;
 			}
 		}
 	} else if ($mapType == MapType.Empty) {
-		for (var i = 0; i < RendererBuffer.empty_paths.length; i++) {
-			if (RendererBuffer.empty_paths[i].$centerA == $centerA && RendererBuffer.empty_paths[i].$centerB == $centerB && RendererBuffer.empty_paths[i].$label == $label) {
-				RendererBuffer.empty_paths.splice(i, 1);
+		for (var i = 0; i < rendererBuffer.empty_paths.length; i++) {
+			if (rendererBuffer.empty_paths[i].$centerA == $centerA && rendererBuffer.empty_paths[i].$centerB == $centerB && rendererBuffer.empty_paths[i].$label == $label) {
+				rendererBuffer.empty_paths.splice(i, 1);
 				i--;
 			}
 		}
@@ -667,18 +675,18 @@ function removeRoute($centerA, $centerB, $label, $mapType) {
  */
 function plotRoutes() {
 	if (mapDetails.render_scheduled) {
-		for (var i = 0; i < RendererBuffer.scheduled_paths.length; i++) {
-			plotRoute(RendererBuffer.scheduled_paths[i].$centerA, RendererBuffer.scheduled_paths[i].$centerB, RendererBuffer.scheduled_paths[i].$label, MapType.Scheduled);
+		for (var i = 0; i < rendererBuffer.scheduled_paths.length; i++) {
+			plotRoute(rendererBuffer.scheduled_paths[i].$centerA, rendererBuffer.scheduled_paths[i].$centerB, rendererBuffer.scheduled_paths[i].$label, MapType.Scheduled);
 		}
 	}
 	if (mapDetails.render_actual) {
-		for (var i = 0; i < RendererBuffer.actual_paths.length; i++) {
-			plotRoute(RendererBuffer.actual_paths[i].$centerA, RendererBuffer.actual_paths[i].$centerB, RendererBuffer.actual_paths[i].$label, MapType.Actual);
+		for (var i = 0; i < rendererBuffer.actual_paths.length; i++) {
+			plotRoute(rendererBuffer.actual_paths[i].$centerA, rendererBuffer.actual_paths[i].$centerB, rendererBuffer.actual_paths[i].$label, MapType.Actual);
 		}
 	}
 	if (mapDetails.render_empty) {
-		for (var i = 0; i < RendererBuffer.empty_paths.length; i++) {
-			plotRoute(RendererBuffer.empty_paths[i].$centerA, RendererBuffer.empty_paths[i].$centerB, RendererBuffer.empty_paths[i].$label, MapType.Empty);
+		for (var i = 0; i < rendererBuffer.empty_paths.length; i++) {
+			plotRoute(rendererBuffer.empty_paths[i].$centerA, rendererBuffer.empty_paths[i].$centerB, rendererBuffer.empty_paths[i].$label, MapType.Empty);
 		}
 	}
 }
@@ -699,46 +707,88 @@ function plotRoute($centerA, $centerB, $label, $mapType) {
 
 	if ($coordsA != null && $coordsB != null) {
 		if ($mapType == MapType.Scheduled) {
+			// Check if there are two lines rendering over each other, going different directions
+			$hasBackwards = false;
+			for(var i = 0; i < rendererBuffer.scheduled_paths.length; i++){
+				if(rendererBuffer.scheduled_paths[i].$centerA == $centerB && rendererBuffer.scheduled_paths[i].$centerB == $centerA){
+					$hasBackwards = true;
+					break;
+				}
+			}
+			if(mapDetails.render_actual){
+				for(var i = 0; i < rendererBuffer.actual_paths.length; i++){
+					if(rendererBuffer.actual_paths[i].$centerA == $centerB && rendererBuffer.actual_paths[i].$centerB == $centerA){
+						$hasBackwards = true;
+						break;
+					}
+				}
+			}
 
-			// check to see if there is already an Actual path on this route. If so, make it scheduled color so that we can tell the difference.
+			// check to see if there is already an Actual path on this route. If so, make the label scheduled color so that we can tell the difference between
+			// the other label, and force the line to be solid.
 			$inActual = false;
-			for (var i = 0; i < RendererBuffer.actual_paths.length; i++) {
-				if((RendererBuffer.actual_paths[i].$centerA == $centerA && RendererBuffer.actual_paths[i].$centerB == $centerB) ||
-					(RendererBuffer.actual_paths[i].$centerA == $centerB && RendererBuffer.actual_paths[i].$centerB == $centerA)) {
+			for (var i = 0; i < rendererBuffer.actual_paths.length; i++) {
+				if((rendererBuffer.actual_paths[i].$centerA == $centerA && rendererBuffer.actual_paths[i].$centerB == $centerB) ||
+					(rendererBuffer.actual_paths[i].$centerA == $centerB && rendererBuffer.actual_paths[i].$centerB == $centerA)) {
 					$inActual = true;
 					break;
 				}
 			}
 			if($inActual && mapDetails.render_actual){
-				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.scheduledColor, $dotted: mapDetails.settings.scheduledDotted, $layer: 'scheduled', $labelColor: mapDetails.settings.scheduledColor });
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.scheduledColor, $dotted: false, $hasBackwards: $hasBackwards, $layer: 'scheduled', $labelColor: mapDetails.settings.scheduledColor });
 
 			// Otherwise, render it like normal, according to the user settings.
 			} else {
-				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.scheduledColor, $dotted: mapDetails.settings.scheduledDotted, $layer: 'scheduled' });
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.scheduledColor, $dotted: mapDetails.settings.scheduledDotted, $hasBackwards: $hasBackwards, $layer: 'scheduled' });
 			}
 
 		} else if ($mapType == MapType.Actual) {
+			// Check if there are two lines rendering over each other, going different directions
+			$hasBackwards = false;
+			for(var i = 0; i < rendererBuffer.actual_paths.length; i++){
+				if(rendererBuffer.actual_paths[i].$centerA == $centerB && rendererBuffer.actual_paths[i].$centerB == $centerA){
+					$hasBackwards = true;
+					break;
+				}
+			}
+			if(mapDetails.render_scheduled){
+				for(var i = 0; i < rendererBuffer.scheduled_paths.length; i++){
+					if(rendererBuffer.scheduled_paths[i].$centerA == $centerB && rendererBuffer.scheduled_paths[i].$centerB == $centerA){
+						$hasBackwards = true;
+						break;
+					}
+				}
+			}
 
-			// check to see if there is already a Scheduled path on this route. If so, make the path dashed, make the label the actual path color, and swap it to the bottom.
+			// check to see if there is already a Scheduled path on this route. If so, make the path dashed, make the label the actual path color.
 			$inScheduled = false;
-			for (var i = 0; i < RendererBuffer.scheduled_paths.length; i++) {
-				if((RendererBuffer.scheduled_paths[i].$centerA == $centerA && RendererBuffer.scheduled_paths[i].$centerB == $centerB) ||
-					(RendererBuffer.scheduled_paths[i].$centerA == $centerB && RendererBuffer.scheduled_paths[i].$centerB == $centerA)) {
+			for (var i = 0; i < rendererBuffer.scheduled_paths.length; i++) {
+				if((rendererBuffer.scheduled_paths[i].$centerA == $centerA && rendererBuffer.scheduled_paths[i].$centerB == $centerB) ||
+					(rendererBuffer.scheduled_paths[i].$centerA == $centerB && rendererBuffer.scheduled_paths[i].$centerB == $centerA)) {
 					$inScheduled = true;
 					break;
 				}
 			}
 			if($inScheduled && mapDetails.render_scheduled){
-				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.actualColor, $dotted: true, $labelSwap: true, $labelColor: mapDetails.settings.actualColor, $layer: 'actual' });
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.actualColor, $dotted: true, $hasBackwards: $hasBackwards, $labelColor: mapDetails.settings.actualColor, $layer: 'actual' });
 
 			// otherwise, just keep it the default, according to the user settings.
 			} else {
-				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.actualColor, $dotted: mapDetails.settings.actualDotted, $layer: 'actual' });
+				plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.actualColor, $dotted: mapDetails.settings.actualDotted, $hasBackwards: $hasBackwards, $layer: 'actual' });
 			}
 
-		} else if ($mapType == MapType.Empty) {
+		} else if ($mapType == MapType.Empty) {$hasBackwards = false;
+			// Check if there are two lines rendering over each other, going different directions
+			$hasBackwards = false;
+			for(var i = 0; i < rendererBuffer.empty_paths.length; i++){
+				if(rendererBuffer.empty_paths[i].$centerA == $centerB && rendererBuffer.empty_paths[i].$centerB == $centerA){
+					$hasBackwards = true;
+					break;
+				}
+			}
+
 			// Empty map stays entirely according to user settings.
-			plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.emptyColor, $dotted: mapDetails.settings.emptyDotted, $layer: 'empty' });
+			plotLine($coordsA[0], $coordsA[1], $coordsB[0], $coordsB[1], { $label: String($label), $color: mapDetails.settings.emptyColor, $dotted: mapDetails.settings.emptyDotted, $layer: 'empty', $hasBackwards: $hasBackwards });
 		}
 	}
 
@@ -767,11 +817,14 @@ function plotRoute($centerA, $centerB, $label, $mapType) {
 			$labelOffset: The vertical position of the label relative
 				to the point. This defaults to -$labelSize*1.5.
  */
-function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", $arrow = mapDetails.settings.hasArrows, $arrowPadding = 5, $thickness = mapDetails.settings.pathSize, $labelColor = "#000", $labelSize = mapDetails.settings.pathLabelSize, $labelOffset = -$labelSize, $dotted = false, $labelSwap = false, $layer = 'lines' } = {}) {
+function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", $arrow = mapDetails.settings.hasArrows, $arrowPadding = 5, $thickness = mapDetails.settings.pathSize, $labelColor = "#000", $labelSize = mapDetails.settings.pathLabelSize, $labelOffset = -$labelSize, $dotted = false, $labelSwap = false, $layer = 'lines', $hasBackwards = false } = {}) {
 
 	$coordsA = longLatToCoords($longA, $latA);
 	$coordsB = longLatToCoords($longB, $latB);
 
+	$mapScaling = $mapCanvas.getLayerGroup('map')[1].scale;
+
+	// Dashed line vs solid line
 	$strokeDash = [0];
 	if($dotted){
 		$strokeDash = mapDetails.settings.dashSize;
@@ -783,11 +836,11 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 		rounded: true,
 		arrowRadius: 3,
 		strokeDash: $strokeDash,
-		x1: $coordsA[0] * $mapCanvas.getLayerGroup('map')[1].scale,
-		y1: $coordsA[1] * $mapCanvas.getLayerGroup('map')[1].scale,
-		x2: $coordsB[0] * $mapCanvas.getLayerGroup('map')[1].scale,
-		y2: $coordsB[1] * $mapCanvas.getLayerGroup('map')[1].scale,
-		scale: $mapCanvas.getLayerGroup('map')[1].scale,
+		x1: $coordsA[0] * $mapScaling,
+		y1: $coordsA[1] * $mapScaling,
+		x2: $coordsB[0] * $mapScaling,
+		y2: $coordsB[1] * $mapScaling,
+		scale: $mapScaling,
 
 		fromCenter: true,
 		layer: true,
@@ -797,11 +850,10 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 		dragstop: resetClickableBackground, // reset position on mouse release
 	});
 
-	// make an arrow
+	// make an arrow, if this setting is applied.
+	$ratio = (Math.sqrt(($coordsA[0] - $coordsB[0])**2 + ($coordsA[1] - $coordsB[1])**2) - $arrowPadding)
+			/ Math.sqrt(($coordsA[0] - $coordsB[0])**2 + ($coordsA[1] - $coordsB[1])**2);
 	if ($arrow) {
-		$ratio = (Math.sqrt(($coordsA[0] - $coordsB[0]) * ($coordsA[0] - $coordsB[0]) + ($coordsA[1] - $coordsB[1]) * ($coordsA[1] - $coordsB[1])) - $arrowPadding)
-			/ Math.sqrt(($coordsA[0] - $coordsB[0]) * ($coordsA[0] - $coordsB[0]) + ($coordsA[1] - $coordsB[1]) * ($coordsA[1] - $coordsB[1]));
-
 		$mapCanvas.drawLine({
 			strokeStyle: $color,
 			strokeWidth: $thickness,
@@ -809,11 +861,11 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 			arrowRadius: 3,
 			strokeDash: $strokeDash,
 			endArrow: true,
-			x1: $coordsA[0] * $mapCanvas.getLayerGroup('map')[1].scale,
-			y1: $coordsA[1] * $mapCanvas.getLayerGroup('map')[1].scale,
-			x2: ($coordsA[0] * (1 - $ratio) + $coordsB[0] * $ratio) * $mapCanvas.getLayerGroup('map')[1].scale,
-			y2: ($coordsA[1] * (1 - $ratio) + $coordsB[1] * $ratio) * $mapCanvas.getLayerGroup('map')[1].scale,
-			scale: $mapCanvas.getLayerGroup('map')[1].scale,
+			x1: $coordsA[0] * $mapScaling,
+			y1: $coordsA[1] * $mapScaling,
+			x2: ($coordsA[0] * (1 - $ratio) + $coordsB[0] * $ratio) * $mapScaling,
+			y2: ($coordsA[1] * (1 - $ratio) + $coordsB[1] * $ratio) * $mapScaling,
+			scale: $mapScaling,
 
 			fromCenter: true,
 			layer: true,
@@ -837,18 +889,32 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 		}
 	}
 
-	if($labelSwap){
-		$yRatio = -$yRatio;
-		$xRatio = -$xRatio;
+	// Raw coordinates to render to
+	$xCoord = ($coordsA[0] + $coordsB[0]) / 2;
+	$yCoord = ($coordsA[1] + $coordsB[1]) / 2;
+
+	// $hasBackwards should be true when there are two paths crossing each other. (Center A -> Center B, and Center B to Center A)
+	// If this is the case, render the labels beside the arrows rather than in the center.
+	if($hasBackwards){
+		$ratio = (Math.sqrt(($coordsA[0] - $coordsB[0])**2 + ($coordsA[1] - $coordsB[1])**2) - $arrowPadding * 2)
+			/ Math.sqrt(($coordsA[0] - $coordsB[0])**2 + ($coordsA[1] - $coordsB[1])**2);
+		$xCoord = ($coordsA[0] * (1 - $ratio) + $coordsB[0] * $ratio);
+		$yCoord = ($coordsA[1] * (1 - $ratio) + $coordsB[1] * $ratio);
+	}
+
+	// Setting for draggable labels
+	$dragGroups = ['map'];  // this group enables global dragging
+	if(mapDetails.settings.draggableLabels){
+		$dragGroups = [];
 	}
 
 	$mapCanvas.drawText({
 		fillStyle: $labelColor,
-		x: (($coordsA[0] + $coordsB[0]) / 2 + $xRatio * $labelOffset) * $mapCanvas.getLayerGroup('map')[1].scale,
-		y: (($coordsA[1] + $coordsB[1]) / 2 + $yRatio * $labelOffset) * $mapCanvas.getLayerGroup('map')[1].scale,
-		origX: (($coordsA[0] + $coordsB[0]) / 2 + $xRatio * $labelOffset),
-		origY: (($coordsA[1] + $coordsB[1]) / 2 + $yRatio * $labelOffset),
-		scale: $mapCanvas.getLayerGroup('map')[1].scale,
+		x: ($xCoord + $xRatio * $labelOffset) * $mapScaling,
+		y: ($yCoord + $yRatio * $labelOffset) * $mapScaling,
+		origX: ($xCoord + $xRatio * $labelOffset),
+		origY: ($yCoord + $yRatio * $labelOffset),
+		scale: $mapScaling,
 		fontSize: $labelSize,
 		fontFamily: 'Verdana, sans-serif',
 		text: $label,
@@ -857,7 +923,7 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 		layer: true,
 		groups: ['map', 'text'],
 		draggable: true,
-		dragGroups: ['map'],				// this group enables global dragging
+		dragGroups: $dragGroups,				
 		dragstop: resetClickableBackground, // reset position on mouse release
 	});
 
@@ -869,9 +935,9 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
  * Clears all route types from memory and de-renders them.
  */
 function clearRoutes(){
-	RendererBuffer.scheduled_paths = [];
-	RendererBuffer.actual_paths = [];
-	RendererBuffer.empty_paths = [];
+	rendererBuffer.scheduled_paths = [];
+	rendererBuffer.actual_paths = [];
+	rendererBuffer.empty_paths = [];
 
 	updateMapSettings();
 }
@@ -882,11 +948,11 @@ function clearRoutes(){
  */
 function clearRouteType($routeType) {
 	if ($routeType == MapType.Scheduled) {
-		RendererBuffer.scheduled_paths = [];
+		rendererBuffer.scheduled_paths = [];
 	} else if ($routeType == MapType.Actual) {
-		RendererBuffer.actual_paths = [];
+		rendererBuffer.actual_paths = [];
 	} else if ($routeType == MapType.Empty) {
-		RendererBuffer.empty_paths = [];
+		rendererBuffer.empty_paths = [];
 	}
 
 	updateMapSettings();
@@ -966,4 +1032,27 @@ function setMapPosition($x, $y, $zoom) {
 		$mapGroup[i].scale = $zoom;
 	};
 	$mapCanvas.drawLayers();
+}
+
+/**
+ * Finds the length between two service centers.
+ * @param {string} $centerA Label of the first service center
+ * @param {string} $centerB Label of the second service center
+ * @returns The length between the two service centers. Null if 
+ * one of the service centers doesn't exist.
+ */
+function getPathLength($centerA, $centerB){
+	$longLatA = getServiceCenterCoords($centerA);
+	$longLatB = getServiceCenterCoords($centerB);
+
+	if($longLatA != null && $longLatB != null){
+		$coordsA = longLatToCoords($longLatA[0], $longLatA[1]);
+		$coordsB = longLatToCoords($longLatB[0], $longLatB[1]);
+
+		$length = Math.sqrt(($coordsB[0] - $coordsA[0])**2 + ($coordsB[1] - $coordsA[1])**2);
+
+		return $length;
+	} else {
+		return null;
+	}
 }

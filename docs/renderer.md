@@ -116,6 +116,8 @@ You will need these. These functions are useful for changing and updating the ma
   * Clears all route types from memory and de-renders them.
 * [`clearServiceCenters`](#clearservicecenters)`()`
   * Clears the Service Center buffer from the Renderer and re-renders the map.
+* [`getPathLength`](#getpathlength)`(centerA, centerB)`
+  * Finds the length between two service centers.
 * [`removeRoute`](#removeroute)`(centerA, centerB, label, mapType)`
   * Removes a route from the renderer's route buffers.
 * [`removeServiceCenter`](#removeservicecenter)`(center)`
@@ -138,7 +140,7 @@ You probably will not need these. These functions do not need to be used to modi
 * [`getMapPosition`](#getmapposition)`()`
   * Calculates and returns the current x, y, and scale of the map.
 * [`getServiceCenterCoords`](#getservicecentercoords)`(symbol)`
-  * Get the coordinates of a service center given a label.
+  * Get the coordinates of a service center given a label. Returns `null` if they don't exist.
 * [`longLatToCoords`](#longlattocoords)`(long, lat)`
   * Converts longitude and latitude to screen coordinates.
 * [`plotLine`](#plotline)`(longA, latA, longB, latB, {$label="", $color="#00F", $arrow=MapSettings.hasArrows, $arrowPadding=5, $thickness=MapSettings.lineThickness, $labelColor="#000", $labelSize=MapSettings.valueLabelSize, $labelOffset=-$labelSize*1.5})`
@@ -283,12 +285,19 @@ You probably will not need these. These functions do not need to be used to modi
 * Parameters: None
 * Returns: An array, \[x, y, scale\]
 * Usage: `getMapPosition()`
+## `getPathLength`
+* Description: Finds the length between two service centers.
+* Parameters: 
+  * centerA: Label of the first service center
+  * centerB: Label of the second service center
+* Returns: The length between the two service centers. Null if one of the service centers doesn't exist.
+* Usage: `getPathLength(centerA, centerB)`
 ## `getServiceCenterCoords`
 * Description: Given the label of a service center, it looks up the service center in the global list (SERVICE_CENTERS) and returns an array containing the longitude and latitude of the service center.
 * Parameters: 
 	* label: The label, or id, of the service center.
 * Returns: 
-  * A 2-element array: [longitude, latitude].
+  * A 2-element array: [longitude, latitude]. Returns `null` if they don't exist.
 * Usage: `getServiceCenterCoords(symbol)`
 ## `longLatToCoords`
 * Description: Converts longitude and latitutde to coordinates suitable for plotting on an x,y canvas

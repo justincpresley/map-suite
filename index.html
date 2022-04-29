@@ -20,7 +20,8 @@
 		<script src="js/popups.js"></script>
 		<script src="js/renderer.js"></script>
 		<script src="js/export.js"></script>
-		<script src="js/routing.js"></script>
+		<script src="js/pathSort.js"></script>
+		<script src="js/conflicts.js"></script>
 
 		<!-- CSS Files -->
 		<link rel="stylesheet" href="css/index.css" />
@@ -63,6 +64,12 @@
 			</div>
 		</div>
 
+		<div id="conflictbar">
+			<div id="conflictbarTitle">
+				<h1>Path Conflicts</h1>
+			</div>
+		</div>
+
 		<div id="topbar">
 			<button id="topbarCenterButton" onclick="centerMap()">Center Map</button>
 
@@ -77,15 +84,21 @@
 					<select id="topbarFiltersDes">
 						<option value="NONE">None</option>
 					</select>
-
-					<label for="topbarFiltersDateFrom">Date From:</label>
-				  <input type="date" id="topbarFiltersDateFrom" name="topbarFiltersDateFrom">
-
-					<label for="topbarFiltersDateTo">Date To:</label>
-				  <input type="date" id="topbarFiltersDateTo" name="topbarFiltersDateTo">
 				</div>
 
-				<button onclick="routeProcessing()">Apply</button>
+				<div id="topbarFiltersDate">
+					<button onclick="filterDateRR()">&#60;&#60;</button>
+
+					<label for="topbarFiltersDateFrom">Date From:</label>
+					<input type="date" id="topbarFiltersDateFrom" class="topbarFilterDate" name="topbarFiltersDateFrom">
+
+					<label for="topbarFiltersDateTo">Date To:</label>
+					<input type="date" id="topbarFiltersDateTo" class="topbarFilterDate" name="topbarFiltersDateTo">
+
+					<button onclick="filterDateFF()">&#62;&#62;</button>
+				</div>
+
+				<button id="topbarFiltersApply" onclick="routeProcessing()">Apply</button>
 			</div>
 
 			<button id="topbarSettingsButton" onclick="settingsMenu()">Settings</button>
@@ -98,7 +111,7 @@
 			</canvas>
 		</div>
 
-		<div id="cover"></div>
+		<div id="cover" onclick="closeSettings(false)"></div>
 
 		<div id="popupAskCenters">
 			<h1>Would you like to update the service centers file?</h1>
@@ -127,6 +140,7 @@
 			  <button id="popupSettingsScheduledTab" class="settingsTabLinks" onclick="openSettingsTab(event, 'settingsScheduledContent')">Scheduled</button>
 			  <button id="popupSettingsActualTab" class="settingsTabLinks" onclick="openSettingsTab(event, 'settingsActualContent')">Actual</button>
 				<button id="popupSettingsEmptyTab" class="settingsTabLinks" onclick="openSettingsTab(event, 'settingsEmptyContent')">Empty</button>
+				<button id="popupSettingsAdvancedTab" class="settingsTabLinks" onclick="openSettingsTab(event, 'settingsAdvancedContent')">Advanced</button>
 			</div>
 
 			<div id="settingsGeneralContent" class="popupSettingsTabContent">
@@ -216,7 +230,16 @@
 				<input type="checkbox" id="popupSettingsEmptyDotted" name="popupSettingsEmptyDotted">
 			</div>
 
-			<button id="popupSettingsCloseButton" onclick="closeSettings()">Apply All Tabs & Close</button>
+			<div id="settingsAdvancedContent" class="popupSettingsTabContent">
+				</br>
+				<button id="settingsAdvancedReset" onclick="resetSettings()">Reset Settings To Default</button>
+				</br>
+				</br>
+				<label for="settingsAdvancedDraggableLabels">Allow labels to be dragged</label>
+				<input type="checkbox" id="settingsAdvancedDraggableLabels" name="settingsAdvancedDraggableLabels">
+			</div>
+			
+			<button id="popupSettingsCloseButton" onclick="closeSettings(true)">Apply All Tabs & Close</button>
 		</div>
 
 		<div id="popupError">
