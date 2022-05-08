@@ -8,6 +8,21 @@ File Infomation:
 var rendererBuffer = new RendererBuffer();
 
 /**
+ * jQuery Entry for the Canvas.
+ * Begins when the document has finished loading.
+ * Calls all necessary functions to initialize the map
+ * of the US.
+ */
+$(() => {
+	// Initialize canvas
+	$mapCanvas = canvasSetup("mapCanvas", "mapWrapper");
+
+	centerMap();
+
+	updateMapSettings(); // aka "render" the map
+});
+
+/**
  * Re-renders the map with new settings applied. Alias for `updateMapSettings()`.
  */
 function render() {
@@ -29,158 +44,6 @@ function updateMapSettings() {
 
 	// move the map back to where it was
 	setMapPosition($mapPosition[0], $mapPosition[1], $mapPosition[2]);
-}
-
-/**
- * jQuery Entry for the Canvas.
- * Begins when the document has finished loading.
- * Calls all necessary functions to initialize the map
- * of the US.
- */
-$(() => {
-	// Initialize canvas
-	$mapCanvas = canvasSetup("mapCanvas", "mapWrapper");
-
-	//loadSampleData();
-
-	centerMap();
-
-	updateMapSettings();
-});
-
-/**
- * Generates sample service centers and routes
- * that can be used to demonstrate settings,
- * the way everything looks, etc.
- */
-function loadSampleData(){
-	$exampleRoutes =
-	`ATL,CHA, 6 ,-84.39,33.75,-85.19,35.06, -
-	ABL,DAL, 3 ,-99.81,32.44,-97.00,32.80, -
-	AUG,ATL, 4 ,-82.13,33.48,-84.39,33.75, -
-	DAL,ABL, 4 ,-99.81,32.44,-97.00,32.80, -
-	AUG,ATL, 5 ,-82.13,33.48,-84.39,33.75, -
-	AUS,WAC, 9 ,-97.63,30.29,-97.18,31.47, -
-	AVL,KNX, 3 ,-82.61,35.55,-84.13,35.91, -
-	BHM,ATL, 8 ,-86.76,33.56,-84.39,33.75, -
-	BHM,DEC, 4 ,-86.76,33.56,-86.84,34.65, -
-	BHM,GAD, 2 ,-86.76,33.56,-86.08,34.00, -
-	BHM,TUP, 3 ,-86.76,33.56,-88.77,34.31, -
-	BMT,BTR, 2 ,-93.78,30.09,-91.05,30.37, -
-	BMT,HOU, 1 ,-93.78,30.09,-95.33,29.92, 1
-	BTR,JMS, 6 ,-91.05,30.37,-90.14,32.25, -
-	BTR,SHR, 1 ,-91.05,30.37,-93.93,32.45, -
-	BWG,LOU, 7 ,-86.42,36.93,-85.66,38.19, -
-	BWG,OWN, 2 ,-86.42,36.93,-87.15,37.79, -
-	CHA,KNX, 1 ,-85.19,35.06,-84.13,35.91, -
-	CHA,NAS, 2 ,-85.19,35.06,-86.72,36.11, -
-	CHI,MWK, 5 ,-87.75,41.76,-87.93,42.93, -
-	CHR,CLM, 2 ,-80.07,32.94,-81.08,33.91, -
-	CIN,CHI, 1 ,-84.64,39.03,-87.75,41.76, -
-	CIN,LOU, 1 ,-84.64,39.03,-85.66,38.19, 1
-	CKV,NAS, 6 ,-85.49,36.13,-86.72,36.11, -
-	CLM,AUG, 1 ,-81.08,33.91,-82.13,33.48, -
-	CLM,CLT, 7 ,-81.08,33.91,-80.97,35.13, -
-	CLT,GRN, 3 ,-80.97,35.13,-82.13,34.88, -
-	COR,LEX, 4 ,-84.07,37.11,-84.52,38.09, -
-	CRP,SAT, 1 ,-97.46,27.79,-98.42,29.46, -
-	DAL,LRK, 5 ,-97.00,32.80,-92.15,34.74, -
-	DAR,CLM, 1 ,-79.79,34.24,-81.08,33.91, -
-	DAR,CLT, 2 ,-79.79,34.24,-80.97,35.13, -
-	DEC,NAS, 6 ,-86.84,34.65,-86.72,36.11, -
-	DOT,MON, 1 ,-85.46,31.28,-86.12,32.37, -
-	DOT,OPK, 2 ,-85.46,31.28,-85.36,32.67, -
-	ENC,RAL, 2 ,-77.34,35.64,-78.83,35.84, -
-	FMY,TAM, 7 ,-81.81,26.64,-82.38,28.00, -
-	FTS,LRK, 2 ,-94.39,35.33,-92.15,34.74, -
-	FTV,CLT, 2 ,-78.89,35.00,-80.97,35.13, -
-	FTV,RAL, 1 ,-78.89,35.00,-78.83,35.84, -
-	GAD,CHA, 2 ,-86.08,34.00,-85.19,35.06, -
-	GBO,CLT, 8 ,-79.99,36.11,-80.97,35.13, -
-	GBO,HKY, 3 ,-79.99,36.11,-81.24,35.69, -
-	GRN,ATL, 2 ,-82.13,34.88,-84.39,33.75, -
-	HAR,SAT, 1 ,-97.83,26.17,-98.42,29.46, -
-	HKY,AVL, 1 ,-81.24,35.69,-82.61,35.55, -
-	HOU,BMT, 1 ,-95.33,29.92,-93.78,30.09, 1
-	HOU,DAL, 3 ,-95.33,29.92,-97.00,32.80, -
-	HOU,SAT, 1 ,-95.33,29.92,-98.42,29.46, -
-	HOU,SHR, 1 ,-95.33,29.92,-93.93,32.45, -
-	JAX,SAV, 9 ,-81.74,30.33,-81.22,32.11, -
-	JAX,TIF, 5 ,-81.74,30.33,-83.51,31.42, -
-	JKN,MAY, 1 ,-88.89,35.67,-88.67,36.82, -
-	JKN,MFS, 1 ,-88.89,35.67,-89.92,35.03, 3
-	JKN,NAS, 1 ,-88.89,35.67,-86.72,36.11, 2
-	JMS,MER, 3 ,-90.14,32.25,-88.73,32.35, -
-	JMS,MFS, 10 ,-90.14,32.25,-89.92,35.03, -
-	KNX,CKV, 5 ,-84.13,35.91,-85.49,36.13, -
-	KNX,COR, 4 ,-84.13,35.91,-84.07,37.11, -
-	LEX,CIN, 1 ,-84.52,38.09,-84.64,39.03, -
-	LEX,LOU, 2 ,-84.52,38.09,-85.66,38.19, -
-	LOU,CHI, 5 ,-85.66,38.19,-87.75,41.76, -
-	LOU,CIN, 1 ,-85.66,38.19,-84.64,39.03, 1
-	LRK,MFS, 10 ,-92.15,34.74,-89.92,35.03, -
-	LUB,ABL, 2 ,-101.83,33.61,-99.81,32.44, -
-	MAC,ATL, 41 ,-83.73,32.80,-84.39,33.75, -
-	MER,BHM, 4 ,-88.73,32.35,-86.76,33.56, -
-	MFS,JKN, 3 ,-89.92,35.03,-88.89,35.67, 1
-	MIA,ORL, 10 ,-80.34,26.13,-81.37,28.41, -
-	MOB,JMS, 1 ,-88.13,30.57,-90.14,32.25, -
-	MOB,MON, 3 ,-88.13,30.57,-86.12,32.37, -
-	MOD,ABL, 1 ,-102.31,31.88,-99.81,32.44, -
-	MON,BHM, 5 ,-86.12,32.37,-86.76,33.56, -
-	MON,OPK, 2 ,-86.12,32.37,-85.36,32.67, -
-	NAS,BWG, 9 ,-86.72,36.11,-86.42,36.93, -
-	NAS,JKN, 2 ,-86.72,36.11,-88.89,35.67, 1
-	NAS,MAY, 2 ,-86.72,36.11,-88.67,36.82, -
-	NFK,RAL, 1 ,-76.37,36.81,-78.83,35.84, -
-	NOL,BTR, 1 ,-90.28,29.99,-91.05,30.37, -
-	NOL,JMS, 3 ,-90.28,29.99,-90.14,32.25, -
-	OKC,DAL, 2 ,-97.42,35.39,-97.00,32.80, -
-	OPK,ATL,5,-85.36,32.67,-84.39,33.75, -
-	OPK,BHM,3,-85.36,32.67,-86.76,33.56, -
-	ORL,JAX,10,-81.37,28.41,-81.74,30.33, -
-	ORL,TIF,19,-81.37,28.41,-83.51,31.42, -
-	PEO,CHI,1,-89.69,40.66,-87.75,41.76, -
-	RAL,GBO,11,-78.83,35.84,-79.99,36.11, -
-	RMD,GBO,1,-77.43,37.40,-79.99,36.11, -
-	ROA,GBO,1,-79.97,37.32,-79.99,36.11, -
-	ROA,TRI,1,-79.97,37.32,-82.52,36.44, -
-	SAT,AUS,2,-98.42,29.46,-97.63,30.29, -
-	SAT,LAR,1,-98.42,29.46,-99.50,27.61, -
-	SAV,CLM,5,-81.22,32.11,-81.08,33.91, -
-	SAV,MAC,2,-81.22,32.11,-83.73,32.80, -
-	SHE,ROA,1,-78.99,38.07,-79.97,37.32, -
-	SHR,LRK,3,-93.93,32.45,-92.15,34.74, -
-	SHR,TYL,2,-93.93,32.45,-95.20,32.44, -
-	TAL,TIF,1,-84.35,30.44,-83.51,31.42, -
-	TAM,ORL,6,-82.38,28.00,-81.37,28.41, -
-	TAM,TIF,18,-82.38,28.00,-83.51,31.42, -
-	TIF,MAC,38,-83.51,31.42,-83.73,32.80, -
-	TIF,OPK,3,-83.51,31.42,-85.36,32.67, -
-	TRI,KNX,1,-82.52,36.44,-84.13,35.91, -
-	TUP,MFS,4,-88.77,34.31,-89.92,35.03, -
-	TYL,DAL,3,-95.20,32.44,-97.00,32.80, -
-	WAC,DAL,7,-97.18,31.47,-97.00,32.80, -
-	WIN,SHE,1,-78.16,39.14,-78.99,38.07, -
-	WPB,ORL,5,-80.08,26.78,-81.37,28.41, -`;
-
-	$exampleRoutesLines = $exampleRoutes.split("\n");
-	for(var i = 0; i < $exampleRoutesLines.length; i++){
-		$line = $exampleRoutesLines[i];
-		$components = $line.split(",");
-
-		$SVCA = $components[0].trim();
-		$SVCB = $components[1].trim();
-		$empties = $components[2].trim();
-		$SVCA_long = $components[3].trim();
-		$SVCA_lat = $components[4].trim();
-		$SVCB_long = $components[5].trim();
-		$SVCB_lat = $components[6].trim();
-
-		addServiceCenter(new ServiceCenter.initialize($SVCA, "", parseFloat($SVCA_lat), parseFloat($SVCA_long)));
-		addServiceCenter(new ServiceCenter.initialize($SVCB, "", parseFloat($SVCB_lat), parseFloat($SVCB_long)));
-		addRoute($SVCA, $SVCB, $empties, (i%3)+1);
-	}
 }
 
 /**
@@ -284,7 +147,7 @@ function createScrollEventListener(canvasID) {
 	// 3 primary parameters for "feel" of the zoom
 	$zoomDuration = 100;
 	$easing = 'linear';	// either 'linear' or 'swing'
-	$scalingFactor = 1.1;
+	$scalingFactor = 1.1; // zoom multiplier
 
 	// initialize scale
 	$mapCanvas.setLayerGroup('map', {
@@ -303,14 +166,14 @@ function createScrollEventListener(canvasID) {
 		if (key.deltaY < 0) {
 			// zoom in
 
-			// scale vertices (for correct translation)
+			// Move all elements to the correct position
 			$mapGroup = $mapCanvas.getLayerGroup('map');
 			for (var i = 0; i < $mapGroup.length; i++) {
 				$mapGroup[i].x = $mapGroup[i].x * $scalingFactor - $xOffset;
 				$mapGroup[i].y = $mapGroup[i].y * $scalingFactor - $yOffset;
 			};
 
-			// scale UI (for scalable visuals)
+			// Change all elements to the correct size
 			$mapCanvas.setLayerGroup('map', {
 				scale: $currentScale * $scalingFactor
 			});
@@ -319,14 +182,14 @@ function createScrollEventListener(canvasID) {
 		} else {
 			// zoom out
 
-			// scale vertices (for correct translation)
+			// Move all elements to the correct position
 			$mapGroup = $mapCanvas.getLayerGroup('map');
 			for (var i = 0; i < $mapGroup.length; i++) {
 				$mapGroup[i].x = $mapGroup[i].x / $scalingFactor + $xOffset;
 				$mapGroup[i].y = $mapGroup[i].y / $scalingFactor + $yOffset;
 			};
 
-			// scale UI (for scalable visuals)
+			// Change all elements to the correct size
 			$mapCanvas.setLayerGroup('map', {
 				scale: $currentScale / $scalingFactor
 			});
@@ -816,8 +679,16 @@ function plotRoute($centerA, $centerB, $label, $mapType) {
 			$labelSize: The font size of the label as descriped in MapSettings.
 			$labelOffset: The vertical position of the label relative
 				to the point. This defaults to -$labelSize*1.5.
+			$dotted: Whether or not to make the line dashed
+			$layer: Which layer to render the line on. Options are "lines"
+				for generic lines, "scheduled" for a scheduled route, "actual"
+				for actual route, and "empty" for empty route.
+			$hasBackwards: Whether or not two lines going in opposite directions
+				are rendering on top of each other. Really, this parameter just
+				changes the positions of the labels to move them closer to the
+				arrows.
  */
-function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", $arrow = mapDetails.settings.hasArrows, $arrowPadding = 5, $thickness = mapDetails.settings.pathSize, $labelColor = "#000", $labelSize = mapDetails.settings.pathLabelSize, $labelOffset = -$labelSize, $dotted = false, $labelSwap = false, $layer = 'lines', $hasBackwards = false } = {}) {
+function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", $arrow = mapDetails.settings.hasArrows, $arrowPadding = 5, $thickness = mapDetails.settings.pathSize, $labelColor = "#000", $labelSize = mapDetails.settings.pathLabelSize, $labelOffset = -$labelSize, $dotted = false, $layer = 'lines', $hasBackwards = false } = {}) {
 
 	$coordsA = longLatToCoords($longA, $latA);
 	$coordsB = longLatToCoords($longB, $latB);
@@ -932,7 +803,7 @@ function plotLine($longA, $latA, $longB, $latB, { $label = "", $color = "#00F", 
 }
 
 /**
- * Clears all route types from memory and de-renders them.
+ * De-registers all routes from the renderer.
  */
 function clearRoutes(){
 	rendererBuffer.scheduled_paths = [];
@@ -943,8 +814,8 @@ function clearRoutes(){
 }
 
 /**
- * Clears a route type from memory and de-renders it.
- * @param {number} $routeType ROUTE_TYPES.IDEAL, ROUTE_TYPES.ACTUAL, ROUTE_TYPES.EMPTY
+ * De-registers a specific route type from the renderer.
+ * @param {number} $routeType MapType.Ideal, MapType.Actual, MapType.Empty
  */
 function clearRouteType($routeType) {
 	if ($routeType == MapType.Scheduled) {
